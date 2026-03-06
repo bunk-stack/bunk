@@ -1307,30 +1307,35 @@ function initMap(containerId, suffix){
   if(suffix==='m'&&mapM)return;
   if(suffix==='d'&&mapD)return;
 
-  const createMap=(lat,lng)=>{
-    const mapContainer=document.getElementById(containerId);
-    if(!mapContainer)return;
+  const mapContainer=document.getElementById(containerId);
+  if(!mapContainer)return;
 
-    const map=L.map(containerId,{
-      center:[lat,lng],zoom:15,
-      zoomControl:true,
-      attributionControl:false,
-    });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,crossOrigin:''}).addTo(map);
+  const map=L.map(containerId,{
+    zoom:15,
+    zoomControl:true,
+    attributionControl:false,
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,crossOrigin:''}).addTo(map);
 
-    // Force size recalc after tiles load (fixes Chrome blank map)
-    map.whenReady(()=>{
-      setTimeout(()=>map.invalidateSize(),100);
-      setTimeout(()=>map.invalidateSize(),500);
-    });
+  let meMarker = null;
+  let peerMarkers = [];
 
-    // Me marker · stored globally so visibility toggle can show/hide it
+  const drawMarkers = (lat, lng) => {
+    // Clear existing markers if we are redrawing after a geolocation update
+    if(meMarker) map.removeLayer(meMarker);
+    peerMarkers.forEach(m => map.removeLayer(m));
+    peerMarkers = [];
+
+    // Center map on the new coordinates
+    map.setView([lat, lng], 15);
+
+    // Draw Me marker
     const meIcon=L.divIcon({className:'',html:meMarkerHTML(),iconSize:[34,34],iconAnchor:[17,17]});
-    const meMarker=L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map).bindTooltip('You',{permanent:false,direction:'top',className:'',offset:[0,-20]});
-    meMarkerRef=meMarker;
+    meMarker=L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map).bindTooltip('You',{permanent:false,direction:'top',className:'',offset:[0,-20]});
+    meMarkerRef=meMarker; // Update the global ref for the ghost mode toggle
     if(mapVisible==='off')meMarker.setOpacity(0);
 
-    // Peer markers · fuzzy offset within ~400m
+    // Draw Peer markers, fuzzy offset within ~400m of the active center
     profiles.forEach(p=>{
       const plat=fuzz(lat,0.004);
       const plng=fuzz(lng,0.005);
@@ -1338,32 +1343,36 @@ function initMap(containerId, suffix){
       const marker=L.marker([plat,plng],{icon}).addTo(map);
       marker.bindPopup(popupHTML(p),{maxWidth:240,minWidth:220,className:''});
       marker.on('click',()=>{
-        // on mobile also track curM
         if(suffix==='m'){curM=p;}else{curD=p;}
       });
+      peerMarkers.push(marker);
     });
 
-    if(suffix==='m'){mapM=map;}else{mapD=map;}
-
-    // Update count
-    const ct=12+Math.floor(Math.random()*8);
-    const el=document.getElementById('map-count-'+suffix);
-    if(el)el.textContent=ct;
-    const pct=document.getElementById('pct-'+suffix);
-    if(pct)pct.textContent=ct+' nearby';
+    // Force size recalc after tiles load (fixes Chrome blank map)
+    map.whenReady(()=>{
+      setTimeout(()=>map.invalidateSize(),100);
+      setTimeout(()=>map.invalidateSize(),500);
+    });
   };
 
-  // Always fall back to Toronto immediately so map renders;
-  // geolocation just re-centres if granted
-  createMap(BASE_LAT,BASE_LNG);
+  // 1. Always fall back to Toronto immediately so the map renders
+  drawMarkers(BASE_LAT, BASE_LNG);
+  if(suffix==='m'){mapM=map;}else{mapD=map;}
 
+  // Update DOM counts
+  const ct=12+Math.floor(Math.random()*8);
+  const el=document.getElementById('map-count-'+suffix);
+  if(el)el.textContent=ct;
+  const pct=document.getElementById('pct-'+suffix);
+  if(pct)pct.textContent=ct+' nearby';
+
+  // 2. If geolocation is granted, redraw the markers at the real location
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
       pos=>{
-        const m=suffix==='m'?mapM:mapD;
-        if(m)m.setView([pos.coords.latitude,pos.coords.longitude],15);
+        drawMarkers(pos.coords.latitude, pos.coords.longitude);
       },
-      ()=>{}, // silently ignore denial · map already rendered
+      ()=>{}, // silently ignore denial
       {timeout:5000,maximumAge:60000}
     );
   }
