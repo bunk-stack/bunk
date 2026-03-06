@@ -487,6 +487,55 @@ select.fld-in option{background:#151b26}
 @keyframes matchPulse{0%,100%{box-shadow:0 0 8px var(--match-glow)}50%{box-shadow:0 0 20px var(--match-glow),0 0 40px rgba(0,212,170,.15)}}
 .matches-strip-empty{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;padding:6px 0;font-style:italic}
 @media(max-width:380px){.match-circle-av{width:40px;height:40px;font-size:18px}.matches-strip-label{font-size:8px}}
+
+/* ── SETUP SECTION LABEL ── */
+.setup-section-lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--cruise);font-family:'DM Mono',monospace;padding:10px 0 5px;border-top:1px solid var(--border);margin-top:4px}
+
+/* ── MAP VISIBILITY CHOICE (in setup) ── */
+.map-vis-choice{display:flex;flex-direction:column;gap:7px}
+.mvc-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .2s}
+.mvc-opt.selected{border-color:var(--cruise);background:var(--cruise-dim)}
+.mvc-opt-icon{font-size:20px;flex-shrink:0}
+.mvc-opt-body{flex:1;min-width:0}
+.mvc-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.mvc-sub{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;line-height:1.4}
+.mvc-check{margin-left:auto;color:var(--cruise);font-size:14px;font-weight:700;flex-shrink:0;width:18px;text-align:center}
+.map-vis-note{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;text-align:center;padding:4px 0 2px}
+
+/* ── RELAY CARD (in setup) ── */
+.relay-card{display:flex;gap:11px;align-items:flex-start;padding:12px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.14);border-radius:11px}
+.relay-card-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.relay-card-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.relay-card-desc{font-size:10px;color:var(--muted2);line-height:1.65;font-family:'DM Mono',monospace}
+.relay-skip{font-size:10px;color:var(--muted2);text-align:center;padding:5px 0 2px;font-family:'DM Mono',monospace;cursor:pointer;transition:color .15s}
+.relay-skip:hover{color:var(--text)}
+
+/* ── MAP VIS FLOATING TOGGLE (on map) ── */
+.map-vis-toggle{position:absolute;bottom:58px;right:12px;z-index:500;display:flex;align-items:center;gap:7px;padding:7px 13px;background:rgba(8,10,15,.88);border:1px solid var(--border2);border-radius:22px;backdrop-filter:blur(10px);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;transition:all .2s;white-space:nowrap;user-select:none}
+.map-vis-toggle.is-visible{border-color:var(--cruise);color:var(--cruise)}
+.map-vis-toggle.is-hidden{color:var(--muted2)}
+.map-vis-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:all .2s}
+.map-vis-toggle.is-visible .map-vis-dot{background:var(--cruise);box-shadow:0 0 6px var(--cruise)}
+.map-vis-toggle.is-hidden .map-vis-dot{background:var(--muted)}
+
+/* ── SOCIALS DISPLAY (profile detail) ── */
+.pd-socials{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 6px}
+.social-chip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);cursor:pointer;transition:all .15s;text-decoration:none}
+.social-chip:hover{border-color:var(--border2);color:var(--text)}
+.social-chip.ig:hover{border-color:#e1306c;color:#e1306c}
+.social-chip.x:hover{border-color:rgba(255,255,255,.6);color:var(--text)}
+.social-chip.bsky:hover{border-color:#0085ff;color:#0085ff}
+.social-chip.of:hover{border-color:#00aff0;color:#00aff0}
+.social-chip.jff:hover{border-color:#ff5f8f;color:#ff5f8f}
+
+/* ── RELAY SIGN-UP NUDGE (inbox) ── */
+.relay-nudge{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:10px 14px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.14);border-radius:11px;cursor:pointer;transition:background .15s}
+.relay-nudge:hover{background:rgba(0,212,170,.09)}
+.relay-nudge-icon{font-size:18px;flex-shrink:0}
+.relay-nudge-body{flex:1;min-width:0}
+.relay-nudge-title{font-size:11px;font-weight:600;margin-bottom:2px}
+.relay-nudge-sub{font-size:9px;color:var(--muted2);font-family:'DM Mono',monospace}
+.relay-nudge-cta{font-size:9px;color:var(--match);font-family:'DM Mono',monospace;font-weight:600;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -509,7 +558,7 @@ select.fld-in option{background:#151b26}
     <div class="mode-card cruise"><div class="mode-card-icon">🔥</div><div><div class="mode-card-title">Cruise</div><div class="mode-card-desc">Live map of who's near you. Tap a dot to peek. Grid view too. You vanish when you close the app.</div></div></div>
     <div class="mode-card match"><div class="mode-card-icon">✨</div><div><div class="mode-card-title">Matchmaker</div><div class="mode-card-desc">Filter by what matters. Swipe. Match only when mutual. No algorithm, no ads.</div></div></div>
   </div>
-  <div class="privacy-strip"><span>🔐</span><span>End-to-end encrypted · WebRTC peer-to-peer · No account, no email, no server storage. Ever.</span></div>
+  <div class="privacy-strip"><span>🔐</span><span>E2E encrypted · WebRTC P2P · Data stays on your device. Optional account enables encrypted offline message relay on bunk.gay.</span></div>
   <button class="btn-cta" onclick="goSetupM()">Create my profile</button>
   <button class="btn-ghost-sm" onclick="goMainM()">Browse as guest</button>
 </div>
@@ -527,12 +576,56 @@ select.fld-in option{background:#151b26}
     </div>
     <div class="fld-row">
       <div class="fld"><label class="fld-lbl">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
-      <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option></select></div>
+      <div class="fld"><label class="fld-lbl">Weight</label><input class="fld-in" type="text" placeholder="165 lbs"></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option><option>Large</option></select></div>
+      <div class="fld"><label class="fld-lbl">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option>Average</option><option>Large</option><option>XL</option><option>Hung</option></select></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Gender identity</label><select class="fld-in"><option>Man</option><option>Non-binary</option><option>Trans man</option><option>Trans woman</option><option>Gender fluid</option><option>Prefer not to say</option></select></div>
+      <div class="fld"><label class="fld-lbl">Ethnicity</label><input class="fld-in" type="text" placeholder="Optional"></div>
     </div>
     <div class="fld"><label class="fld-lbl">About you</label><input class="fld-in" type="text" placeholder="Dog dad. Coffee addict."></div>
     <div class="fld"><label class="fld-lbl">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Side</option></select></div>
     <div class="fld"><label class="fld-lbl">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">Hookups</div><div class="tag" onclick="toggleTag(this)">Relationship</div></div></div>
     <div class="fld"><label class="fld-lbl">Into</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Bears</div><div class="tag" onclick="toggleTag(this)">Twinks</div><div class="tag" onclick="toggleTag(this)">Daddies</div><div class="tag" onclick="toggleTag(this)">Jocks</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Kink</div></div></div>
+
+    <div class="setup-section-lbl">Socials · optional</div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Instagram</label><input class="fld-in" type="text" id="soc-ig-m" placeholder="@handle"></div>
+      <div class="fld"><label class="fld-lbl">X / Twitter</label><input class="fld-in" type="text" id="soc-x-m" placeholder="@handle"></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Bluesky</label><input class="fld-in" type="text" id="soc-bsky-m" placeholder="handle.bsky.social"></div>
+      <div class="fld"><label class="fld-lbl">OnlyFans</label><input class="fld-in" type="text" id="soc-of-m" placeholder="username"></div>
+    </div>
+    <div class="fld"><label class="fld-lbl">JustForFans</label><input class="fld-in" type="text" id="soc-jff-m" placeholder="username"></div>
+
+    <div class="setup-section-lbl">Map visibility</div>
+    <div class="map-vis-choice" id="mvc-m">
+      <div class="mvc-opt selected" onclick="setMapVis('on','m')">
+        <div class="mvc-opt-icon">📍</div>
+        <div class="mvc-opt-body"><div class="mvc-title">Visible on map</div><div class="mvc-sub">Nearby users can see your dot on Cruise — recommended</div></div>
+        <div class="mvc-check" id="mvc-check-on-m">✓</div>
+      </div>
+      <div class="mvc-opt" onclick="setMapVis('off','m')">
+        <div class="mvc-opt-icon">👻</div>
+        <div class="mvc-opt-body"><div class="mvc-title">Ghost mode</div><div class="mvc-sub">Browse privately — invisible on the map</div></div>
+        <div class="mvc-check" id="mvc-check-off-m" style="opacity:0">✓</div>
+      </div>
+    </div>
+    <div class="map-vis-note">Saved to this device · toggle anytime from the map screen</div>
+
+    <div class="setup-section-lbl">Account · optional</div>
+    <div class="relay-card">
+      <div class="relay-card-icon">📡</div>
+      <div><div class="relay-card-title">Receive messages when offline</div><div class="relay-card-desc">Bunk is P2P — messages are live and end-to-end encrypted. Sign up so our relay can temporarily hold messages on bunk.gay servers until you reconnect. Only your device can decrypt them.</div></div>
+    </div>
+    <div class="fld"><label class="fld-lbl">Email</label><input class="fld-in" type="email" id="signup-email-m" placeholder="you@example.com"></div>
+    <div class="fld"><label class="fld-lbl">Password</label><input class="fld-in" type="password" id="signup-pw-m" placeholder="create a password"></div>
+    <div class="relay-skip" onclick="goMainM()">Skip for now — browse without an account</div>
+
     <button class="btn-cta" onclick="goMainM()">Join Bunk · bunk.gay</button>
   </div>
 </div>
@@ -560,6 +653,9 @@ select.fld-in option{background:#151b26}
         <div id="bunk-map" style="width:100%;height:100%"></div>
         <div class="map-count-badge"><span id="map-count-m">18</span> peers nearby</div>
         <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
+        <div class="map-vis-toggle is-visible" id="mapvis-toggle-m" onclick="toggleMapVis('m')">
+          <div class="map-vis-dot"></div><span id="mapvis-label-m">Visible</span>
+        </div>
       </div>
     </div>
     <!-- Grid view -->
@@ -599,6 +695,7 @@ select.fld-in option{background:#151b26}
     <div class="pd-name" id="pname-m"></div><div class="pd-meta" id="pmeta-m"></div>
     <div class="pd-tags" id="ptags-m"></div>
     <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-m"></div></div>
+    <div class="pd-section" id="pd-socials-section-m" style="display:none"><div class="pd-section-lbl">Socials</div><div class="pd-socials" id="pd-socials-m"></div></div>
     <div class="pd-section"><div class="pd-section-lbl">Peer connection</div>
       <div class="peer-box"><div class="peer-row"><span class="peer-k">Protocol</span><span class="peer-v">WebRTC P2P</span></div><div class="peer-row"><span class="peer-k">Encryption</span><span class="peer-v">E2E · AES-256-GCM</span></div><div class="peer-row"><span class="peer-k">Peer ID</span><span class="peer-v" id="ppeer-m"></span></div><div class="peer-row"><span class="peer-k">Latency</span><span class="peer-v" id="plat-m"></span></div><div class="peer-row"><span class="peer-k">Server storage</span><span class="peer-v" style="color:var(--cruise)">None · bunk.gay</span></div></div>
     </div>
@@ -611,6 +708,14 @@ select.fld-in option{background:#151b26}
     <div class="topbar-logo">BUNK</div>
     <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Messages</div>
     <div class="icon-btn" onclick="showScreenM('screen-main-m')">✕</div>
+  </div>
+  <div class="relay-nudge" id="relay-nudge-m" onclick="showScreenM('screen-setup-m')">
+    <div class="relay-nudge-icon">📡</div>
+    <div class="relay-nudge-body">
+      <div class="relay-nudge-title">Miss messages when offline?</div>
+      <div class="relay-nudge-sub">Create an account to enable encrypted relay · bunk.gay</div>
+    </div>
+    <div class="relay-nudge-cta">Sign up →</div>
   </div>
   <div class="inbox-filter">
     <div class="inbox-chip on-all" id="inbox-chip-all-m" onclick="filterInboxM('all')">All</div>
@@ -742,6 +847,9 @@ select.fld-in option{background:#151b26}
         <div id="bunk-map-d" style="width:100%;height:100%"></div>
         <div class="map-count-badge"><span id="map-count-d">18</span> peers nearby</div>
         <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
+        <div class="map-vis-toggle is-visible" id="mapvis-toggle-d" onclick="toggleMapVis('d')">
+          <div class="map-vis-dot"></div><span id="mapvis-label-d">Visible on map</span>
+        </div>
       </div>
     </div>
     <!-- Grid -->
@@ -777,11 +885,55 @@ select.fld-in option{background:#151b26}
       </div>
       <div class="fld-row">
         <div class="fld"><label class="fld-lbl">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
-        <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option></select></div>
+        <div class="fld"><label class="fld-lbl">Weight</label><input class="fld-in" type="text" placeholder="165 lbs"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option><option>Large</option></select></div>
+        <div class="fld"><label class="fld-lbl">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option>Average</option><option>Large</option><option>XL</option><option>Hung</option></select></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Gender identity</label><select class="fld-in"><option>Man</option><option>Non-binary</option><option>Trans man</option><option>Trans woman</option><option>Gender fluid</option><option>Prefer not to say</option></select></div>
+        <div class="fld"><label class="fld-lbl">Ethnicity</label><input class="fld-in" type="text" placeholder="Optional"></div>
       </div>
       <div class="fld"><label class="fld-lbl">About you</label><input class="fld-in" type="text" placeholder="Dog dad. Coffee addict."></div>
       <div class="fld"><label class="fld-lbl">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Side</option></select></div>
       <div class="fld"><label class="fld-lbl">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">Hookups</div><div class="tag" onclick="toggleTag(this)">Relationship</div></div></div>
+
+      <div class="setup-section-lbl">Socials · optional</div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Instagram</label><input class="fld-in" type="text" id="soc-ig-d" placeholder="@handle"></div>
+        <div class="fld"><label class="fld-lbl">X / Twitter</label><input class="fld-in" type="text" id="soc-x-d" placeholder="@handle"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Bluesky</label><input class="fld-in" type="text" id="soc-bsky-d" placeholder="handle.bsky.social"></div>
+        <div class="fld"><label class="fld-lbl">OnlyFans</label><input class="fld-in" type="text" id="soc-of-d" placeholder="username"></div>
+      </div>
+      <div class="fld"><label class="fld-lbl">JustForFans</label><input class="fld-in" type="text" id="soc-jff-d" placeholder="username"></div>
+
+      <div class="setup-section-lbl">Map visibility</div>
+      <div class="map-vis-choice" id="mvc-d">
+        <div class="mvc-opt selected" onclick="setMapVis('on','d')">
+          <div class="mvc-opt-icon">📍</div>
+          <div class="mvc-opt-body"><div class="mvc-title">Visible on map</div><div class="mvc-sub">Nearby users can see your dot on Cruise — recommended</div></div>
+          <div class="mvc-check" id="mvc-check-on-d">✓</div>
+        </div>
+        <div class="mvc-opt" onclick="setMapVis('off','d')">
+          <div class="mvc-opt-icon">👻</div>
+          <div class="mvc-opt-body"><div class="mvc-title">Ghost mode</div><div class="mvc-sub">Browse privately — invisible on the map</div></div>
+          <div class="mvc-check" id="mvc-check-off-d" style="opacity:0">✓</div>
+        </div>
+      </div>
+      <div class="map-vis-note">Saved to this device · toggle anytime from the map screen</div>
+
+      <div class="setup-section-lbl">Account · optional</div>
+      <div class="relay-card">
+        <div class="relay-card-icon">📡</div>
+        <div><div class="relay-card-title">Receive messages when offline</div><div class="relay-card-desc">Bunk is P2P — messages are live and end-to-end encrypted. Sign up so our relay can temporarily hold messages on bunk.gay servers until you reconnect. Only your device can decrypt them.</div></div>
+      </div>
+      <div class="fld"><label class="fld-lbl">Email</label><input class="fld-in" type="email" id="signup-email-d" placeholder="you@example.com"></div>
+      <div class="fld"><label class="fld-lbl">Password</label><input class="fld-in" type="password" id="signup-pw-d" placeholder="create a password"></div>
+      <div class="relay-skip">Skip for now — browse without an account</div>
+
       <button class="btn-cta" onclick="setViewD('cruise');setNavD('cruise')">Save &amp; cruise · bunk.gay</button>
     </div>
   </div>
@@ -789,6 +941,14 @@ select.fld-in option{background:#151b26}
   <div class="view" id="view-msgs">
     <div class="ds-content-hdr">
       <div><div class="ds-content-title">💬 Messages</div><div class="ds-content-sub">All conversations · P2P encrypted</div></div>
+    </div>
+    <div class="relay-nudge" id="relay-nudge-d" onclick="setViewD('setup');setNavD('profile')">
+      <div class="relay-nudge-icon">📡</div>
+      <div class="relay-nudge-body">
+        <div class="relay-nudge-title">Miss messages when offline?</div>
+        <div class="relay-nudge-sub">Create an account to enable encrypted relay · bunk.gay</div>
+      </div>
+      <div class="relay-nudge-cta">Sign up →</div>
     </div>
     <div class="inbox-filter" style="padding:10px 22px">
       <div class="inbox-chip on-all" id="inbox-chip-all-d" onclick="filterInboxD('all')">All</div>
@@ -841,6 +1001,7 @@ select.fld-in option{background:#151b26}
         <div class="pd-name" id="pname-d"></div><div class="pd-meta" id="pmeta-d"></div>
         <div class="pd-tags" id="ptags-d"></div>
         <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-d"></div></div>
+        <div class="pd-section" id="pd-socials-section-d" style="display:none"><div class="pd-section-lbl">Socials</div><div class="pd-socials" id="pd-socials-d"></div></div>
         <div class="pd-section"><div class="pd-section-lbl">Peer connection</div>
           <div class="peer-box"><div class="peer-row"><span class="peer-k">Protocol</span><span class="peer-v">WebRTC P2P</span></div><div class="peer-row"><span class="peer-k">Encryption</span><span class="peer-v">E2E · AES-256-GCM</span></div><div class="peer-row"><span class="peer-k">Peer ID</span><span class="peer-v" id="ppeer-d"></span></div><div class="peer-row"><span class="peer-k">Latency</span><span class="peer-v" id="plat-d"></span></div><div class="peer-row"><span class="peer-k">Server storage</span><span class="peer-v" style="color:var(--cruise)">None · bunk.gay</span></div></div>
         </div>
@@ -854,19 +1015,87 @@ select.fld-in option{background:#151b26}
 
 <script>
 const profiles=[
-  {id:'p1',name:'Marco',age:29,body:'Athletic',height:"6'0\"",dist:'0.3 km',bio:'Freelance designer, dog parent, espresso snob. Looking for something real — or at least interesting.',tags:['Dates','Friends'],into:['Jocks','Daddies'],pos:'Versatile',emoji:'🧑',bg:'bg1',online:true},
-  {id:'p2',name:'Tyler',age:34,body:'Muscular',height:"5'11\"",dist:'0.7 km',bio:'PT by day, terrible cook by night. Bear-adjacent. Very pro-nap.',tags:['Hookups','Chat'],into:['Bears','Kink'],pos:'Top',emoji:'🧔',bg:'bg2',online:true},
-  {id:'p3',name:'Seb',age:26,body:'Slim',height:"5'9\"",dist:'1.1 km',bio:'PhD in urban planning. Overthink everything, including this bio.',tags:['Friends','Dates'],into:['Twinks','Vanilla'],pos:'Bottom',emoji:'👦',bg:'bg3',online:false},
-  {id:'p4',name:'Renaud',age:31,body:'Average',height:"6'1\"",dist:'1.4 km',bio:'French. Architecture. Good red wine. Bad at texting back.',tags:['Dates','Chat'],into:['Daddies'],pos:'Versatile',emoji:'🧑‍🦱',bg:'bg4',online:true},
-  {id:'p5',name:'Kwame',age:28,body:'Athletic',height:"6'2\"",dist:'2.0 km',bio:'Photographer. Night owl. Here for genuine connection first.',tags:['Friends','Relationship'],into:['Jocks','Bears'],pos:'Top',emoji:'🧑‍🦲',bg:'bg5',online:true},
-  {id:'p6',name:'Luca',age:23,body:'Slim',height:"5'8\"",dist:'2.3 km',bio:'Art student, part-time barista, full-time chaos gremlin. Mostly harmless.',tags:['Chat','Hookups'],into:['Twinks','Leather'],pos:'Bottom',emoji:'🧒',bg:'bg6',online:false},
-  {id:'p7',name:'Diego',age:37,body:'Stocky',height:"5'10\"",dist:'2.8 km',bio:"Chef. Tattooed. Reads actual books. Swipe right if you like food arguments.",tags:['Dates','Relationship'],into:['Bears','Daddies'],pos:'Side',emoji:'👨',bg:'bg7',online:true},
-  {id:'p8',name:'Noah',age:24,body:'Athletic',height:"6'1\"",dist:'3.1 km',bio:'Tech bro by accident, artist by choice. Looking for something that surprises me.',tags:['Chat','Dates'],into:['Jocks','Vanilla'],pos:'Versatile',emoji:'🧑‍🦰',bg:'bg8',online:true},
+  {id:'p1',name:'Marco',age:29,body:'Athletic',height:"6'0\"",weight:'175 lbs',genderIdentity:'Man',ethnicity:'Italian',endowment:'Large',dist:'0.3 km',bio:'Freelance designer, dog parent, espresso snob. Looking for something real — or at least interesting.',tags:['Dates','Friends'],into:['Jocks','Daddies'],pos:'Versatile',emoji:'🧑',bg:'bg1',online:true,socials:{ig:'@marco.designs',x:'@marcodesigns',bsky:'',of:'',jff:''}},
+  {id:'p2',name:'Tyler',age:34,body:'Muscular',height:"5'11\"",weight:'210 lbs',genderIdentity:'Man',ethnicity:'',endowment:'Hung',dist:'0.7 km',bio:'PT by day, terrible cook by night. Bear-adjacent. Very pro-nap.',tags:['Hookups','Chat'],into:['Bears','Kink'],pos:'Top',emoji:'🧔',bg:'bg2',online:true,socials:{ig:'@tylerlifts',x:'',bsky:'',of:'tylerlifts',jff:''}},
+  {id:'p3',name:'Seb',age:26,body:'Slim',height:"5'9\"",weight:'148 lbs',genderIdentity:'Non-binary',ethnicity:'French',endowment:'Average',dist:'1.1 km',bio:'PhD in urban planning. Overthink everything, including this bio.',tags:['Friends','Dates'],into:['Twinks','Vanilla'],pos:'Bottom',emoji:'👦',bg:'bg3',online:false,socials:{ig:'',x:'@seb_urb',bsky:'seb.bsky.social',of:'',jff:''}},
+  {id:'p4',name:'Renaud',age:31,body:'Average',height:"6'1\"",weight:'180 lbs',genderIdentity:'Man',ethnicity:'French',endowment:'Large',dist:'1.4 km',bio:'French. Architecture. Good red wine. Bad at texting back.',tags:['Dates','Chat'],into:['Daddies'],pos:'Versatile',emoji:'🧑‍🦱',bg:'bg4',online:true,socials:{ig:'@renaudarch',x:'',bsky:'',of:'',jff:''}},
+  {id:'p5',name:'Kwame',age:28,body:'Athletic',height:"6'2\"",weight:'190 lbs',genderIdentity:'Man',ethnicity:'Ghanaian',endowment:'XL',dist:'2.0 km',bio:'Photographer. Night owl. Here for genuine connection first.',tags:['Friends','Relationship'],into:['Jocks','Bears'],pos:'Top',emoji:'🧑‍🦲',bg:'bg5',online:true,socials:{ig:'@kwamephoto',x:'@kwamephoto',bsky:'kwame.bsky.social',of:'',jff:''}},
+  {id:'p6',name:'Luca',age:23,body:'Slim',height:"5'8\"",weight:'140 lbs',genderIdentity:'Man',ethnicity:'Italian',endowment:'Average',dist:'2.3 km',bio:'Art student, part-time barista, full-time chaos gremlin. Mostly harmless.',tags:['Chat','Hookups'],into:['Twinks','Leather'],pos:'Bottom',emoji:'🧒',bg:'bg6',online:false,socials:{ig:'@luca.art',x:'',bsky:'',of:'lucaart',jff:'luca'}},
+  {id:'p7',name:'Diego',age:37,body:'Stocky',height:"5'10\"",weight:'205 lbs',genderIdentity:'Man',ethnicity:'Mexican',endowment:'Hung',dist:'2.8 km',bio:"Chef. Tattooed. Reads actual books. Swipe right if you like food arguments.",tags:['Dates','Relationship'],into:['Bears','Daddies'],pos:'Side',emoji:'👨',bg:'bg7',online:true,socials:{ig:'@diegocooks',x:'@diegocooks',bsky:'',of:'',jff:''}},
+  {id:'p8',name:'Noah',age:24,body:'Athletic',height:"6'1\"",weight:'175 lbs',genderIdentity:'Man',ethnicity:'',endowment:'Large',dist:'3.1 km',bio:'Tech bro by accident, artist by choice. Looking for something that surprises me.',tags:['Chat','Dates'],into:['Jocks','Vanilla'],pos:'Versatile',emoji:'🧑‍🦰',bg:'bg8',online:true,socials:{ig:'@noahcreates',x:'@noahcreates',bsky:'noah.bsky.social',of:'',jff:''}},
 ];
 const replies=['haha yeah 😄',"okay now I'm curious 👀",'same tbh','lol yes exactly','tell me more','oof relatable','wait seriously?',"that's kinda hot ngl",'love that for you'];
 let curM=null,curD=null,sidxM=0,sidxD=0;
 let mapM=null,mapD=null;
 let cruiseViewM='map',cruiseViewD='map';
+
+// ── MAP VISIBILITY STATE ──
+// 'on' = visible on map (default), 'off' = ghost mode
+let mapVisible = localStorage.getItem('bunk_map_vis') || 'on';
+let meMarkerRef = null; // hold ref to "You" marker so we can show/hide it
+
+function applyMapVis(){
+  // Update floating toggle buttons
+  ['m','d'].forEach(s=>{
+    const btn=document.getElementById('mapvis-toggle-'+s);
+    const lbl=document.getElementById('mapvis-label-'+s);
+    if(!btn)return;
+    if(mapVisible==='on'){
+      btn.className='map-vis-toggle is-visible';
+      if(lbl)lbl.textContent=s==='d'?'Visible on map':'Visible';
+    } else {
+      btn.className='map-vis-toggle is-hidden';
+      if(lbl)lbl.textContent=s==='d'?'Ghost mode':'Ghost';
+    }
+  });
+  // Show/hide me marker
+  if(meMarkerRef){
+    meMarkerRef.setOpacity(mapVisible==='on'?1:0);
+  }
+}
+
+function toggleMapVis(s){
+  mapVisible = mapVisible==='on'?'off':'on';
+  localStorage.setItem('bunk_map_vis', mapVisible);
+  applyMapVis();
+  const msg=mapVisible==='on'?'📍 Now visible on map':'👻 Ghost mode — you\'re hidden';
+  showToast(mapVisible==='on'?'📍':'👻', mapVisible==='on'?'Visible on map':'Ghost mode', mapVisible==='on'?'You appear on the Cruise map':'You\'re invisible to others on the map','cruise');
+}
+
+function setMapVis(val, suffix){
+  mapVisible=val;
+  localStorage.setItem('bunk_map_vis', val);
+  // Update MVC UI for both suffixes
+  ['m','d'].forEach(s=>{
+    const onEl=document.getElementById('mvc-check-on-'+s);
+    const offEl=document.getElementById('mvc-check-off-'+s);
+    const mvc=document.getElementById('mvc-'+s);
+    if(!mvc)return;
+    mvc.querySelectorAll('.mvc-opt').forEach(o=>o.classList.remove('selected'));
+    if(val==='on'){
+      mvc.querySelector('.mvc-opt:first-child').classList.add('selected');
+      if(onEl)onEl.style.opacity='1';
+      if(offEl)offEl.style.opacity='0';
+    } else {
+      mvc.querySelector('.mvc-opt:last-child').classList.add('selected');
+      if(onEl)onEl.style.opacity='0';
+      if(offEl)offEl.style.opacity='1';
+    }
+  });
+  applyMapVis();
+}
+
+// ── SOCIALS HELPER ──
+function socialsHTML(socials){
+  if(!socials)return'';
+  const chips=[];
+  if(socials.ig)chips.push(`<a class="social-chip ig" href="https://instagram.com/${socials.ig.replace('@','')}" target="_blank">📸 ${socials.ig}</a>`);
+  if(socials.x)chips.push(`<a class="social-chip x" href="https://x.com/${socials.x.replace('@','')}" target="_blank">𝕏 ${socials.x}</a>`);
+  if(socials.bsky)chips.push(`<a class="social-chip bsky" href="https://bsky.app/profile/${socials.bsky}" target="_blank">🦋 ${socials.bsky}</a>`);
+  if(socials.of)chips.push(`<a class="social-chip of" href="https://onlyfans.com/${socials.of}" target="_blank">🔵 OnlyFans</a>`);
+  if(socials.jff)chips.push(`<a class="social-chip jff" href="https://justfor.fans/${socials.jff}" target="_blank">🩷 JFF</a>`);
+  return chips.join('');
+}
 
 // ── MATCHES STATE ──
 let myMatches=[
@@ -911,6 +1140,9 @@ let activeShareSuffix='m';
 const rh=n=>[...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
 function toggleTag(el){el.classList.toggle('on')}
 function previewAv(inp,imgId,phId){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{const i=document.getElementById(imgId);i.src=e.target.result;i.style.display='block';document.getElementById(phId).style.display='none';};r.readAsDataURL(inp.files[0])}
+
+// Apply saved map visibility pref to UI on load
+(function(){applyMapVis();})();
 
 // ── MAP ──
 // Toronto as default centre, fuzzy offsets for peer dots
@@ -963,9 +1195,11 @@ function initMap(containerId, suffix){
       setTimeout(()=>map.invalidateSize(),500);
     });
 
-    // Me marker
+    // Me marker — stored globally so visibility toggle can show/hide it
     const meIcon=L.divIcon({className:'',html:meMarkerHTML(),iconSize:[34,34],iconAnchor:[17,17]});
-    L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map).bindTooltip('You',{permanent:false,direction:'top',className:'',offset:[0,-20]});
+    const meMarker=L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map).bindTooltip('You',{permanent:false,direction:'top',className:'',offset:[0,-20]});
+    meMarkerRef=meMarker;
+    if(mapVisible==='off')meMarker.setOpacity(0);
 
     // Peer markers — fuzzy offset within ~400m
     profiles.forEach(p=>{
@@ -1052,11 +1286,30 @@ function fillProfile(p,s){
   const em=document.createElement('span');em.style.cssText='font-size:80px;position:relative;z-index:1';em.textContent=p.emoji;
   hero.innerHTML='';hero.append(g,b,em);
   document.getElementById('pname-'+s).textContent=`${p.name}, ${p.age}`;
-  document.getElementById('pmeta-'+s).textContent=`${p.body} · ${p.height} · ${p.pos} · ${p.dist} away`;
+  // Build meta line with new fields
+  const metaParts=[p.body];
+  if(p.height)metaParts.push(p.height);
+  if(p.weight)metaParts.push(p.weight);
+  if(p.genderIdentity&&p.genderIdentity!=='Man'&&p.genderIdentity!=='Prefer not to say')metaParts.push(p.genderIdentity);
+  metaParts.push(p.pos);
+  if(p.endowment&&p.endowment!=='Prefer not to say')metaParts.push(p.endowment);
+  metaParts.push(p.dist+' away');
+  document.getElementById('pmeta-'+s).textContent=metaParts.join(' · ');
   document.getElementById('pbio-'+s).textContent=p.bio;
   document.getElementById('ppeer-'+s).textContent=rh(8);
   document.getElementById('plat-'+s).textContent=(12+Math.floor(Math.random()*40))+'ms';
-  document.getElementById('ptags-'+s).innerHTML=[...p.tags,...p.into].map(t=>`<span class="pd-tag">${t}</span>`).join('');
+  // Tags: include ethnicity as a tag if set
+  const tags=[...p.tags,...p.into];
+  if(p.ethnicity)tags.unshift(p.ethnicity);
+  document.getElementById('ptags-'+s).innerHTML=tags.map(t=>`<span class="pd-tag">${t}</span>`).join('');
+  // Socials
+  const socHtml=socialsHTML(p.socials);
+  const socSection=document.getElementById('pd-socials-section-'+s);
+  const socEl=document.getElementById('pd-socials-'+s);
+  if(socSection&&socEl){
+    if(socHtml){socEl.innerHTML=socHtml;socSection.style.display='';}
+    else{socSection.style.display='none';}
+  }
 }
 function showDetWelcome(){document.getElementById('det-welcome').style.display='flex';document.getElementById('det-profile').style.display='none'}
 
