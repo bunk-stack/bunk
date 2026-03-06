@@ -898,14 +898,16 @@ function threadHTML(conv){
   const isCruise=conv.source==='cruise';
   const srcClass=isCruise?'cruise':'match';
   const srcIcon=isCruise?'🔥':'✨';
+  const displayName=conv.simName||p.name;
+  const displayEmoji=conv.simEmoji||p.emoji;
   return `<div class="inbox-thread" onclick="openConvFromInbox('${conv.id}')">
     <div class="inbox-av-wrap">
-      <div class="inbox-av ${srcClass}-av">${p.emoji}</div>
+      <div class="inbox-av ${srcClass}-av">${displayEmoji}</div>
       <div class="inbox-source-badge ${srcClass}-badge">${srcIcon}</div>
     </div>
     <div class="inbox-body">
       <div class="inbox-name-row">
-        <span class="inbox-name">${p.name}</span>
+        <span class="inbox-name">${displayName}</span>
         <span class="inbox-time">${conv.time}</span>
       </div>
       <div class="inbox-preview ${conv.unread?'unread':''}">${conv.lastMsg}</div>
@@ -1020,6 +1022,269 @@ setTimeout(()=>{
   const n=12+Math.floor(Math.random()*10);
   const e=document.getElementById('csub-d');if(e)e.textContent=`${n} peers nearby · live map · bunk.gay`;
 },300);
+
+// ════════════════════════════════════════
+// ── SIMULATION ENGINE ──
+// ════════════════════════════════════════
+
+const simProfiles=[
+  {name:'Marco',emoji:'🧑',source:'cruise',msgs:['hey 👋','you near Church St?','nice profile','you free tonight?','what are you into?']},
+  {name:'Tyler',emoji:'🧔',source:'cruise',msgs:['sup','looking?','nice 😏','wanna chat?','you around?']},
+  {name:'Kwame',emoji:'🧑‍🦲',source:'match',msgs:["it's a match! say hi 😊",'hey there!','love your vibe','coffee sometime?','you seem cool']},
+  {name:'Renaud',emoji:'🧑‍🦱',source:'cruise',msgs:['salut 👋','tu es près?','nice to meet you','ping me if you want to chat']},
+  {name:'Diego',emoji:'👨',source:'match',msgs:['matched! 🎉','hey!','your profile is great','what brings you to Bunk?']},
+  {name:'Noah',emoji:'🧑‍🦰',source:'cruise',msgs:['hey','you online?','cool app','wave back?','what part of the city?']},
+  {name:'Luca',emoji:'🧒',source:'match',msgs:['omg we matched 😄','hiii','your pics are cute','want to grab a drink?']},
+  {name:'Seb',emoji:'👦',source:'cruise',msgs:['hey there','you nearby?','what are you up to?','this app is wild']},
+];
+
+const typingPhrases=['typing…','typing…','typing…'];
+let simActive=false;
+let simMapMarkers=[];
+let simPeerCount=18;
+
+// ── TOAST ──
+// inject toast container
+const toastContainer=document.createElement('div');
+toastContainer.id='toast-container';
+toastContainer.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 32px);max-width:400px;';
+document.body.appendChild(toastContainer);
+
+function showToast(emoji, title, body, source, onClick){
+  const srcColor=source==='cruise'?'var(--cruise)':'var(--match)';
+  const srcBg=source==='cruise'?'var(--cruise-dim)':'var(--match-dim)';
+  const t=document.createElement('div');
+  t.style.cssText=`background:rgba(14,17,24,0.97);border:1px solid ${srcColor};border-radius:16px;padding:11px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 8px 32px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.04);pointer-events:all;cursor:pointer;width:100%;backdrop-filter:blur(16px);transform:translateY(-20px) scale(0.95);opacity:0;transition:transform 0.35s cubic-bezier(0.2,0,0.2,1),opacity 0.35s ease;`;
+  t.innerHTML=`
+    <div style="width:40px;height:40px;border-radius:50%;background:${srcBg};border:1.5px solid ${srcColor};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${emoji}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+      <div style="font-size:11px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${body}</div>
+    </div>
+    <div style="font-size:9px;color:${srcColor};font-family:'DM Mono',monospace;flex-shrink:0;padding:3px 7px;border-radius:20px;border:1px solid ${srcColor};background:${srcBg};">${source==='cruise'?'🔥':'✨'}</div>`;
+  toastContainer.appendChild(t);
+  // animate in
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    t.style.transform='translateY(0) scale(1)';t.style.opacity='1';
+  }));
+  // click handler
+  if(onClick)t.addEventListener('click',()=>{onClick();t.remove();});
+  // auto dismiss after 4.5s
+  setTimeout(()=>{
+    t.style.transform='translateY(-10px) scale(0.96)';t.style.opacity='0';
+    setTimeout(()=>t.remove(),350);
+  },4500);
+}
+
+// ── TYPING INDICATOR ──
+function showTyping(msgsElId, source){
+  const msgs=document.getElementById(msgsElId);if(!msgs)return null;
+  const cls='msg them'+(source==='match'?' match-msg':'');
+  const t=document.createElement('div');t.className=cls;t.id='typing-indicator-'+msgsElId;
+  t.innerHTML=`<div class="bubble" style="display:flex;gap:4px;align-items:center;padding:10px 14px;">
+    <span style="width:6px;height:6px;border-radius:50%;background:var(--muted2);display:inline-block;animation:tdot 1.2s ease infinite;"></span>
+    <span style="width:6px;height:6px;border-radius:50%;background:var(--muted2);display:inline-block;animation:tdot 1.2s ease 0.2s infinite;"></span>
+    <span style="width:6px;height:6px;border-radius:50%;background:var(--muted2);display:inline-block;animation:tdot 1.2s ease 0.4s infinite;"></span>
+  </div>`;
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+  return t;
+}
+
+// inject typing dot keyframe
+const tdStyle=document.createElement('style');
+tdStyle.textContent='@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}';
+document.head.appendChild(tdStyle);
+
+// ── SIMULATE INCOMING MESSAGE IN OPEN CHAT ──
+function simIncomingChatMsg(suffix, profile){
+  const activeChat=suffix==='m'
+    ? document.getElementById('screen-chat-m')?.classList.contains('active')
+    : document.querySelector('#view-chat')?.classList.contains('active');
+  if(!activeChat)return;
+  const msgsId='cmsgs-'+suffix;
+  const msg=profile.msgs[Math.floor(Math.random()*profile.msgs.length)];
+  const typing=showTyping(msgsId, profile.source);
+  setTimeout(()=>{
+    if(typing)typing.remove();
+    const msgs=document.getElementById(msgsId);if(!msgs)return;
+    const cls='msg them'+(profile.source==='match'?' match-msg':'');
+    const r=document.createElement('div');r.className=cls;
+    r.innerHTML=`<div class="bubble">${msg}</div><div class="msg-t">just now</div>`;
+    msgs.appendChild(r);msgs.scrollTop=msgs.scrollHeight;
+  },1400+Math.random()*800);
+}
+
+// ── SIMULATE NEW INBOX MESSAGE ──
+function simInboxMessage(){
+  const p=simProfiles[Math.floor(Math.random()*simProfiles.length)];
+  const msg=p.msgs[Math.floor(Math.random()*p.msgs.length)];
+  // add to conversations
+  const newConv={
+    id:'sim-'+Date.now(),
+    profileId: profiles[Math.floor(Math.random()*profiles.length)].id,
+    source:p.source,
+    lastMsg:msg,
+    time:'now',
+    unread:true,
+    simName:p.name,
+    simEmoji:p.emoji,
+  };
+  conversations.unshift(newConv);
+  // re-render inboxes
+  const isMobile=window.innerWidth<768;
+  if(isMobile){
+    renderInbox('inbox-list-m', inboxFilterM);
+    // update nav badge
+    updateMsgBadge();
+  } else {
+    renderInbox('inbox-list-d', inboxFilterD);
+    updateMsgBadge();
+  }
+  // toast
+  showToast(p.emoji, p.name, msg, p.source, ()=>{
+    const prof=profiles.find(x=>x.id===newConv.profileId)||profiles[0];
+    if(isMobile){openChatM(prof,p.source);}
+    else{openChatD(prof,p.source);}
+  });
+  // if chat is open with this person, show typing then message
+  simIncomingChatMsg(isMobile?'m':'d', p);
+}
+
+// ── MSG BADGE ON NAV ──
+function updateMsgBadge(){
+  const unread=conversations.filter(c=>c.unread).length;
+  ['mnav-msgs','dnav-msgs'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    let badge=el.querySelector('.nav-badge');
+    if(unread>0){
+      if(!badge){badge=document.createElement('span');badge.className='nav-badge';badge.style.cssText='margin-left:auto;background:var(--cruise);color:#fff;border-radius:20px;font-size:9px;font-family:\'DM Mono\',monospace;padding:1px 6px;min-width:16px;text-align:center;';el.appendChild(badge);}
+      badge.textContent=unread;
+    } else {
+      if(badge)badge.remove();
+    }
+  });
+}
+
+// ── SIMULATE PEER COUNT FLUCTUATION ──
+function simPeerFlux(){
+  const delta=Math.random()>.5?1:-1;
+  simPeerCount=Math.max(8,Math.min(32,simPeerCount+delta));
+  ['pct-m','pct-d'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=simPeerCount+' nearby';
+  });
+  ['map-count-m','map-count-d'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=simPeerCount;
+  });
+}
+
+// ── SIMULATE NEW MAP DOT APPEARING ──
+let simMapProfiles=[];
+function simAddMapPeer(mapObj, suffix){
+  if(!mapObj)return;
+  const centre=mapObj.getCenter();
+  const p=simProfiles[Math.floor(Math.random()*simProfiles.length)];
+  const lat=fuzz(centre.lat,0.003);
+  const lng=fuzz(centre.lng,0.004);
+  const fakeProfile={id:'sim-'+Date.now(),name:p.name,age:20+Math.floor(Math.random()*18),body:'Athletic',height:"5'10\"",dist:(0.1+Math.random()*1.5).toFixed(1)+' km',bio:'Just joined Bunk.',tags:['Chat'],into:['Jocks'],pos:'Versatile',emoji:p.emoji,bg:'bg'+(1+Math.floor(Math.random()*8)),online:true};
+  const icon=L.divIcon({className:'',html:peerMarkerHTML(fakeProfile),iconSize:[48,48],iconAnchor:[24,24]});
+  const marker=L.marker([lat,lng],{icon,opacity:0}).addTo(mapObj);
+  marker.bindPopup(popupHTML(fakeProfile),{maxWidth:240,minWidth:220,className:''});
+  marker.on('click',()=>{if(suffix==='m'){curM=fakeProfile;}else{curD=fakeProfile;}});
+  // fade in
+  let op=0;
+  const fadeIn=setInterval(()=>{op+=0.1;marker.setOpacity(Math.min(op,1));if(op>=1)clearInterval(fadeIn);},60);
+  // store for later removal
+  simMapProfiles.push({marker,added:Date.now()});
+  // toast
+  showToast(p.emoji,p.name+' just came online',fakeProfile.dist+' away · Cruise','cruise',()=>{
+    openProfileFromMap(fakeProfile.id);
+  });
+  // clean up old sim markers after 45s
+  simMapProfiles=simMapProfiles.filter(x=>{
+    if(Date.now()-x.added>45000){
+      let op2=1;
+      const fadeOut=setInterval(()=>{op2-=0.1;x.marker.setOpacity(Math.max(op2,0));if(op2<=0){clearInterval(fadeOut);mapObj.removeLayer(x.marker);}},80);
+      return false;
+    }
+    return true;
+  });
+}
+
+// ── SIMULATE MATCH NOTIFICATION ──
+function simMatchToast(){
+  const p=simProfiles.filter(x=>x.source==='match')[Math.floor(Math.random()*4)];
+  showToast(p.emoji,'You matched with '+p.name,'You both swiped right ✨','match',()=>{
+    const prof=profiles[Math.floor(Math.random()*profiles.length)];
+    if(window.innerWidth<768){openChatM(prof,'match');}
+    else{openChatD(prof,'match');}
+  });
+}
+
+// ── SIMULATE WAVE ──
+function simWaveToast(){
+  const p=simProfiles[Math.floor(Math.random()*simProfiles.length)];
+  showToast(p.emoji,p.name+' waved at you','👋 Say something back','cruise',()=>{
+    const prof=profiles[Math.floor(Math.random()*profiles.length)];
+    if(window.innerWidth<768){openChatM(prof,'cruise');}
+    else{openChatD(prof,'cruise');}
+  });
+}
+
+// ── MASTER SIMULATION SCHEDULER ──
+function startSimulation(){
+  if(simActive)return;
+  simActive=true;
+
+  // first events fire quickly to hook tester immediately
+  setTimeout(simInboxMessage, 6000);
+  setTimeout(simWaveToast, 11000);
+  setTimeout(()=>simAddMapPeer(mapM||mapD,'m'), 14000);
+  setTimeout(simMatchToast, 22000);
+  setTimeout(simInboxMessage, 30000);
+
+  // then settle into organic rhythm
+  // peer count fluctuates every 8-15s
+  setInterval(simPeerFlux, 10000+Math.random()*5000);
+
+  // new inbox message every 35-70s
+  setInterval(()=>{
+    if(Math.random()>0.3)simInboxMessage();
+  }, 35000+Math.random()*35000);
+
+  // map peer appears every 20-40s
+  setInterval(()=>{
+    const m=mapM||mapD;
+    if(m)simAddMapPeer(m, window.innerWidth<768?'m':'d');
+  }, 20000+Math.random()*20000);
+
+  // match toast every 50-90s
+  setInterval(()=>{
+    if(Math.random()>0.4)simMatchToast();
+  }, 50000+Math.random()*40000);
+
+  // wave toast every 40-80s
+  setInterval(()=>{
+    if(Math.random()>0.5)simWaveToast();
+  }, 40000+Math.random()*40000);
+
+  // peer count badge refresh every 30s
+  setInterval(updateMsgBadge, 30000);
+}
+
+// start simulation after user reaches main screen
+const _origGoMainM=goMainM;
+goMainM=function(){
+  _origGoMainM();
+  setTimeout(startSimulation, 3000);
+};
+
+// also start on desktop (already past onboarding)
+setTimeout(()=>{
+  startSimulation();
+  updateMsgBadge();
+}, 5000);
 </script>
 </body>
 </html>
