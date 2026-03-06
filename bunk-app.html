@@ -522,7 +522,7 @@ select.fld-in option{background:#151b26}
     <div style="display:flex;gap:6px">
       <div class="icon-btn" id="view-toggle-m" onclick="toggleCruiseViewM()" title="Map / Grid">🗺️</div>
       <div class="icon-btn" onclick="showScreenM('screen-setup-m')">👤</div>
-      <div class="icon-btn" onclick="openChatM(null)">💬</div>
+      <div class="icon-btn" onclick="openInboxM();setNavM('msgs')">💬</div>
     </div>
   </div>
   <div class="mode-toggle">
@@ -533,9 +533,9 @@ select.fld-in option{background:#151b26}
   <!-- CRUISE -->
   <div id="m-cruise" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
     <!-- Map view -->
-    <div id="m-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column">
-      <div class="map-wrap" style="flex:1">
-        <div id="bunk-map"></div>
+    <div id="m-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column;min-height:0">
+      <div class="map-wrap" style="position:absolute;inset:0">
+        <div id="bunk-map" style="width:100%;height:100%"></div>
         <div class="map-count-badge"><span id="map-count-m">18</span> peers nearby</div>
         <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
       </div>
@@ -709,9 +709,9 @@ select.fld-in option{background:#151b26}
       </div>
     </div>
     <!-- Map -->
-    <div id="d-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column">
-      <div class="map-wrap" style="flex:1">
-        <div id="bunk-map-d"></div>
+    <div id="d-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column;min-height:0">
+      <div class="map-wrap" style="position:absolute;inset:0">
+        <div id="bunk-map-d" style="width:100%;height:100%"></div>
         <div class="map-count-badge"><span id="map-count-d">18</span> peers nearby</div>
         <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
       </div>
@@ -1181,7 +1181,9 @@ setTimeout(()=>{
   initMap('bunk-map-d','d');
   const n=12+Math.floor(Math.random()*10);
   const e=document.getElementById('csub-d');if(e)e.textContent=`${n} peers nearby · live map · bunk.gay`;
-},300);
+  // force size recalc after tiles load
+  setTimeout(()=>{if(mapD)mapD.invalidateSize();},800);
+},600);
 
 // ════════════════════════════════════════
 // ── ALBUMS ──
