@@ -373,8 +373,98 @@ select.fld-in option{background:#151b26}
 /* cruise bubble: already orange. match bubbles override */
 .msg.me.match-msg .bubble{background:var(--match-dim);border-color:rgba(0,212,170,.25)}
 
-/* photo bgs */
-.bg1{background:linear-gradient(145deg,#1a2535,#0d3a2e)}.bg2{background:linear-gradient(145deg,#2a1030,#1a0a3a)}.bg3{background:linear-gradient(145deg,#352010,#3a1a0a)}.bg4{background:linear-gradient(145deg,#103035,#0a2a3a)}.bg5{background:linear-gradient(145deg,#301020,#2a0a18)}.bg6{background:linear-gradient(145deg,#102535,#0a203a)}.bg7{background:linear-gradient(145deg,#253510,#1a2a0a)}.bg8{background:linear-gradient(145deg,#351510,#3a100a)}
+/* ── ALBUMS ── */
+.albums-hdr{padding:18px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.albums-hdr-left{display:flex;flex-direction:column;gap:2px}
+.albums-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px}
+.albums-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.btn-new-album{padding:8px 14px;border-radius:9px;border:1px solid var(--cruise);background:var(--cruise-dim);color:var(--cruise);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-new-album:hover{background:var(--cruise);color:#fff}
+.albums-privacy-bar{display:flex;align-items:center;gap:8px;margin:10px 18px;padding:9px 12px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.1);border-radius:9px;font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace}
+.albums-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 18px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+@media(min-width:900px){.albums-grid{grid-template-columns:repeat(3,1fr)}}
+.album-card{border-radius:14px;overflow:hidden;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:transform .2s,border-color .2s;position:relative}
+.album-card:hover{transform:scale(1.025);border-color:var(--border2)}
+.album-thumb{width:100%;aspect-ratio:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:var(--surface3)}
+.album-thumb-cell{display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--surface3)}
+.album-thumb-cell:first-child{font-size:36px}
+.album-thumb.single .album-thumb-cell{grid-column:1/-1;grid-row:1/-1;font-size:52px}
+.album-info{padding:9px 10px 10px}
+.album-name{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.5px;margin-bottom:2px}
+.album-meta{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+.album-privacy-pill{position:absolute;top:7px;right:7px;padding:2px 7px;border-radius:20px;font-size:8px;font-family:'DM Mono',monospace;backdrop-filter:blur(6px)}
+.album-privacy-pill.pub{background:rgba(0,212,170,.15);border:1px solid rgba(0,212,170,.3);color:var(--match)}
+.album-privacy-pill.priv{background:rgba(255,69,0,.12);border:1px solid rgba(255,69,0,.25);color:var(--cruise)}
+.album-add-card{border-radius:14px;border:1.5px dashed var(--border2);background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;aspect-ratio:1;transition:border-color .2s,background .2s}
+.album-add-card:hover{border-color:var(--cruise);background:var(--cruise-dim)}
+.album-add-icon{font-size:28px;color:var(--muted)}
+.album-add-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* album lightbox overlay */
+.album-lightbox{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.92);display:none;flex-direction:column;backdrop-filter:blur(8px)}
+.album-lightbox.open{display:flex}
+.alb-hdr{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top) + 14px) 18px 12px;flex-shrink:0}
+.alb-hdr-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px}
+.alb-hdr-meta{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:2px}
+.alb-close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted2)}
+.alb-photo-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px}
+.alb-photo{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:42px;background:var(--surface2);cursor:pointer;transition:opacity .15s}
+.alb-photo:hover{opacity:.85}
+.alb-actions{display:flex;gap:9px;padding:13px 18px calc(13px + var(--safe-bot));border-top:1px solid var(--border);flex-shrink:0}
+.alb-btn{flex:1;padding:12px;border-radius:11px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;border:none;cursor:pointer;transition:transform .15s}
+.alb-btn-share{background:var(--cruise);color:#fff;box-shadow:0 4px 16px var(--cruise-glow)}
+.alb-btn-edit{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.alb-p2p-note{text-align:center;font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:0 18px 10px}
+
+/* create album modal */
+.modal-overlay{position:fixed;inset:0;z-index:9991;background:rgba(0,0,0,.7);display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-sheet{width:100%;max-width:480px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;padding:20px 20px calc(20px + var(--safe-bot));display:flex;flex-direction:column;gap:13px;animation:sheetUp .3s cubic-bezier(.2,0,.2,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;text-align:center}
+.modal-privacy-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.privacy-opt{padding:11px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;transition:all .15s}
+.privacy-opt.sel-pub{border-color:var(--match);background:var(--match-dim)}
+.privacy-opt.sel-priv{border-color:var(--cruise);background:var(--cruise-dim)}
+.privacy-opt-icon{font-size:20px;margin-bottom:4px}
+.privacy-opt-lbl{font-size:11px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+.privacy-opt-desc{font-size:9px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:2px;line-height:1.4}
+.expiry-row{display:flex;gap:6px;flex-wrap:wrap}
+.expiry-chip{padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;cursor:pointer;transition:all .15s}
+.expiry-chip.on{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+.modal-btns{display:flex;gap:9px;margin-top:4px}
+.modal-btn-cancel{flex:1;padding:13px;border-radius:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer}
+.modal-btn-create{flex:2;padding:13px;border-radius:11px;background:var(--cruise);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;cursor:pointer;box-shadow:0 4px 16px var(--cruise-glow)}
+
+/* album share bubble in chat */
+.album-bubble{display:flex;flex-direction:column;gap:0;overflow:hidden;border-radius:14px;border:1px solid var(--cruise);background:var(--surface2);min-width:180px;max-width:220px;cursor:pointer;transition:transform .15s}
+.album-bubble:hover{transform:scale(1.02)}
+.alb-bub-thumb{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--surface3);height:90px}
+.alb-bub-cell{display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--surface3)}
+.alb-bub-info{padding:8px 10px;display:flex;align-items:center;gap:7px}
+.alb-bub-icon{font-size:14px}
+.alb-bub-name{font-size:11px;font-weight:600;flex:1}
+.alb-bub-count{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+.alb-bub-p2p{font-size:8px;color:var(--match);font-family:'DM Mono',monospace;padding:3px 8px;border-top:1px solid var(--border);text-align:center}
+
+/* album btn in chat input */
+.album-attach-btn{width:34px;height:34px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;transition:all .15s}
+.album-attach-btn:hover{border-color:var(--cruise);background:var(--cruise-dim)}
+
+/* share picker sheet */
+.share-picker{position:fixed;inset:0;z-index:9992;background:rgba(0,0,0,.75);display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.share-picker.open{display:flex}
+.share-picker-sheet{width:100%;max-width:480px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;padding:18px 18px calc(18px + var(--safe-bot));animation:sheetUp .3s cubic-bezier(.2,0,.2,1)}
+.share-picker-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px}
+.share-picker-sub{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:14px}
+.share-album-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto}
+.share-album-row{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s}
+.share-album-row:hover{border-color:var(--cruise);background:var(--cruise-dim)}
+.share-alb-thumb{width:44px;height:44px;border-radius:9px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.share-alb-name{font-weight:600;font-size:13px}
+.share-alb-meta{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:2px}
+.share-picker-cancel{width:100%;margin-top:10px;padding:13px;border-radius:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer}
+.share-online-note{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.12);border-radius:9px;font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:12px}.bg1{background:linear-gradient(145deg,#1a2535,#0d3a2e)}.bg2{background:linear-gradient(145deg,#2a1030,#1a0a3a)}.bg3{background:linear-gradient(145deg,#352010,#3a1a0a)}.bg4{background:linear-gradient(145deg,#103035,#0a2a3a)}.bg5{background:linear-gradient(145deg,#301020,#2a0a18)}.bg6{background:linear-gradient(145deg,#102535,#0a203a)}.bg7{background:linear-gradient(145deg,#253510,#1a2a0a)}.bg8{background:linear-gradient(145deg,#351510,#3a100a)}
 </style>
 </head>
 <body>
@@ -470,6 +560,7 @@ select.fld-in option{background:#151b26}
     <div class="nav-item on-cruise" id="mnav-cruise" onclick="setModeM('cruise');setNavM('cruise')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/></svg>Cruise</div>
     <div class="nav-item" id="mnav-match" onclick="setModeM('match');setNavM('match')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Match</div>
     <div class="nav-item" id="mnav-msgs" onclick="openInboxM();setNavM('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</div>
+    <div class="nav-item" id="mnav-albums" onclick="openAlbumsM();setNavM('albums')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Albums</div>
     <div class="nav-item" id="mnav-profile" onclick="showScreenM('screen-setup-m')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</div>
   </div>
 </div>
@@ -516,12 +607,70 @@ select.fld-in option{background:#151b26}
   </div>
   <div class="e2e-bar">🔒 E2E encrypted · <span>zero messages stored · bunk.gay</span></div>
   <div class="chat-msgs" id="cmsgs-m"></div>
-  <div class="chat-input-bar"><textarea class="chat-in" id="cin-m" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('m')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('m')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+  <div class="chat-input-bar"><div class="album-attach-btn" onclick="openSharePicker('m')" title="Share album">📸</div><textarea class="chat-in" id="cin-m" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('m')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('m')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+</div>
+
+<div class="screen" id="screen-albums-m" style="background:var(--bg)">
+  <div class="topbar">
+    <div class="topbar-logo">BUNK</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">My Albums</div>
+    <div class="icon-btn" onclick="showScreenM('screen-main-m')">✕</div>
+  </div>
+  <div class="albums-privacy-bar">🔒 Albums live on your device · shared P2P only · never stored on servers</div>
+  <div class="albums-grid" id="albums-grid-m"></div>
 </div>
 
 </div></div>
 
-<!-- ══════════ DESKTOP ══════════ -->
+<!-- ── ALBUM LIGHTBOX ── -->
+<div class="album-lightbox" id="album-lightbox">
+  <div class="alb-hdr">
+    <div><div class="alb-hdr-name" id="alb-lbx-name"></div><div class="alb-hdr-meta" id="alb-lbx-meta"></div></div>
+    <div class="alb-close" onclick="closeAlbumLightbox()">✕</div>
+  </div>
+  <div class="alb-photo-grid" id="alb-photo-grid"></div>
+  <div class="alb-p2p-note">🔒 Shared P2P only · recipient must be online · stored on device only</div>
+  <div class="alb-actions">
+    <button class="alb-btn alb-btn-edit" onclick="closeAlbumLightbox()">✎ Edit</button>
+    <button class="alb-btn alb-btn-share" onclick="closeAlbumLightbox();openSharePicker('active')">📤 Share in Chat</button>
+  </div>
+</div>
+
+<!-- ── CREATE ALBUM MODAL ── -->
+<div class="modal-overlay" id="create-album-modal" onclick="if(event.target===this)closeCreateAlbum()">
+  <div class="modal-sheet">
+    <div class="modal-title">New Album</div>
+    <div class="fld"><label class="fld-lbl">Album name</label><input class="fld-in" id="album-name-inp" type="text" placeholder="e.g. Summer 2025, Gym Pics…"></div>
+    <div class="fld"><label class="fld-lbl">Privacy</label>
+      <div class="modal-privacy-row">
+        <div class="privacy-opt sel-pub" id="priv-pub" onclick="selectPrivacy('public')"><div class="privacy-opt-icon">👁️</div><div class="privacy-opt-lbl">Public</div><div class="privacy-opt-desc">Shown on your profile to anyone</div></div>
+        <div class="privacy-opt" id="priv-priv" onclick="selectPrivacy('private')"><div class="privacy-opt-icon">🔒</div><div class="privacy-opt-lbl">Private</div><div class="privacy-opt-desc">Only shared when you choose to send it</div></div>
+      </div>
+    </div>
+    <div class="fld"><label class="fld-lbl">Recipient's copy expires</label>
+      <div class="expiry-row">
+        <div class="expiry-chip" onclick="selectExpiry(this,'24h')">24 hours</div>
+        <div class="expiry-chip on" onclick="selectExpiry(this,'7d')">7 days</div>
+        <div class="expiry-chip" onclick="selectExpiry(this,'never')">Never</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" onclick="closeCreateAlbum()">Cancel</button>
+      <button class="modal-btn-create" onclick="createAlbum()">Create Album</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHARE PICKER ── -->
+<div class="share-picker" id="share-picker" onclick="if(event.target===this)closeSharePicker()">
+  <div class="share-picker-sheet">
+    <div class="share-picker-title">Share an Album</div>
+    <div class="share-picker-sub" id="share-picker-sub">Recipient must be online to receive · P2P transfer only</div>
+    <div class="share-online-note">🟢 &nbsp;Recipient is online · P2P transfer ready</div>
+    <div class="share-album-list" id="share-album-list"></div>
+    <button class="share-picker-cancel" onclick="closeSharePicker()">Cancel</button>
+  </div>
+</div>
 <div id="shell-desktop">
 
 <div class="ds-sidebar">
@@ -538,6 +687,7 @@ select.fld-in option{background:#151b26}
     <div class="ds-nav-item" id="dnav-match" onclick="setModeD('match');setNavD('match')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Matchmaker</div>
     <div class="ds-nav-section">Connect</div>
     <div class="ds-nav-item" id="dnav-msgs" onclick="setViewD('msgs');setNavD('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</div>
+    <div class="ds-nav-item" id="dnav-albums" onclick="setViewD('albums');setNavD('albums')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Albums</div>
     <div class="ds-nav-section">Account</div>
     <div class="ds-nav-item" id="dnav-profile" onclick="setViewD('setup');setNavD('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</div>
   </div>
@@ -629,7 +779,16 @@ select.fld-in option{background:#151b26}
     </div>
     <div class="e2e-bar">🔒 E2E encrypted · <span>zero messages stored · bunk.gay</span></div>
     <div class="chat-msgs" id="cmsgs-d"></div>
-    <div class="chat-input-bar"><textarea class="chat-in" id="cin-d" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('d')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('d')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+    <div class="chat-input-bar"><div class="album-attach-btn" onclick="openSharePicker('d')" title="Share album">📸</div><textarea class="chat-in" id="cin-d" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('d')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('d')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+  </div>
+
+  <div class="view" id="view-albums">
+    <div class="ds-content-hdr">
+      <div><div class="ds-content-title">📸 My Albums</div><div class="ds-content-sub">Stored locally · shared P2P only · never on servers</div></div>
+      <button class="btn-new-album" onclick="openCreateAlbum()">＋ New Album</button>
+    </div>
+    <div class="albums-privacy-bar">🔒 Albums live on your device only · recipients must be online to receive · P2P transfer</div>
+    <div class="albums-grid" id="albums-grid-d"></div>
   </div>
 
 </div>
@@ -831,12 +990,12 @@ function setModeM(m){
   document.getElementById('view-toggle-m').style.display=m==='cruise'?'flex':'none';
   if(m==='cruise'&&mapM)setTimeout(()=>mapM.invalidateSize(),100);
 }
-function setNavM(a){['cruise','match','msgs','profile'].forEach(id=>{const e=document.getElementById('mnav-'+id);if(e)e.className='nav-item';});const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',profile:'on-neutral'};if(map[a])document.getElementById('mnav-'+a).classList.add(map[a])}
+function setNavM_old_removed(){}
 
 // ── DESKTOP VIEWS ──
 function setViewD(v){document.querySelectorAll('#shell-desktop .view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');if(v==='cruise'&&mapD)setTimeout(()=>mapD.invalidateSize(),100)}
 function setModeD(m){setViewD(m==='cruise'?'cruise':'match');document.getElementById('dbtn-cruise').className='ds-mode-btn'+(m==='cruise'?' active-cruise':'');document.getElementById('dbtn-match').className='ds-mode-btn'+(m==='match'?' active-match':'');const d=document.getElementById('pdot-d');d.style.background=m==='cruise'?'var(--cruise)':'var(--match)';d.style.boxShadow=`0 0 6px ${m==='cruise'?'var(--cruise)':'var(--match)'}`}
-function setNavD(a){['cruise','match','msgs','profile'].forEach(id=>{const e=document.getElementById('dnav-'+id);if(e)e.className='ds-nav-item';});const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',profile:'on-neutral'};if(map[a])document.getElementById('dnav-'+a).classList.add(map[a])}
+function setNavD(a){['cruise','match','msgs','albums','profile'].forEach(id=>{const e=document.getElementById('dnav-'+id);if(e)e.className='ds-nav-item';});const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',albums:'on-neutral',profile:'on-neutral'};if(map[a])document.getElementById('dnav-'+a)?.classList.add(map[a])}
 
 // ── PEER COUNT ──
 function animPct(eid){let c=0,t=12+Math.floor(Math.random()*10);const e=document.getElementById(eid);const iv=setInterval(()=>{c++;if(e)e.textContent=c+' nearby';if(c>=t)clearInterval(iv);},55)}
@@ -1017,6 +1176,7 @@ renderCruise('cgrid-d');
 buildStack('sarena-d','d');
 animPct('pct-d');
 renderInbox('inbox-list-d','all');
+renderAlbums('albums-grid-d');
 setTimeout(()=>{
   initMap('bunk-map-d','d');
   const n=12+Math.floor(Math.random()*10);
@@ -1024,8 +1184,188 @@ setTimeout(()=>{
 },300);
 
 // ════════════════════════════════════════
-// ── SIMULATION ENGINE ──
+// ── ALBUMS ──
 // ════════════════════════════════════════
+
+// seed albums
+let myAlbums=[
+  {id:'a1',name:'Profile Pics',privacy:'public',expiry:'never',photos:['🧑','😎','🏋️','🌊'],count:4,created:'Jan 2025'},
+  {id:'a2',name:'Beach Trip',privacy:'public',expiry:'7d',photos:['🏖️','🌅','🍹','🚤'],count:12,created:'Aug 2024'},
+  {id:'a3',name:'Private',privacy:'private',expiry:'24h',photos:['🔒','📷','🖼️','✨'],count:6,created:'Feb 2025'},
+];
+let selectedPrivacy='public';
+let selectedExpiry='7d';
+let activeAlbumForShare=null;
+
+function albumThumbHTML(album){
+  const photos=album.photos.slice(0,4);
+  if(photos.length===1)return`<div class="album-thumb single"><div class="album-thumb-cell">${photos[0]}</div></div>`;
+  return`<div class="album-thumb">${photos.map(p=>`<div class="album-thumb-cell">${p}</div>`).join('')}</div>`;
+}
+
+function renderAlbums(gridId){
+  const el=document.getElementById(gridId);if(!el)return;
+  el.innerHTML=myAlbums.map(a=>`
+    <div class="album-card" onclick="openAlbumLightbox('${a.id}')">
+      ${albumThumbHTML(a)}
+      <div class="album-info">
+        <div class="album-name">${a.name}</div>
+        <div class="album-meta">${a.count} photos · ${a.created}</div>
+      </div>
+      <div class="album-privacy-pill ${a.privacy==='public'?'pub':'priv'}">${a.privacy==='public'?'👁 Public':'🔒 Private'}</div>
+    </div>
+  `).join('')+`
+    <div class="album-add-card" onclick="openCreateAlbum()">
+      <div class="album-add-icon">＋</div>
+      <div class="album-add-lbl">New Album</div>
+    </div>`;
+}
+
+function openAlbumLightbox(id){
+  const a=myAlbums.find(x=>x.id===id);if(!a)return;
+  activeAlbumForShare=a;
+  document.getElementById('alb-lbx-name').textContent=a.name;
+  document.getElementById('alb-lbx-meta').textContent=`${a.count} photos · ${a.privacy==='public'?'👁 Public':'🔒 Private'} · expires ${a.expiry}`;
+  const grid=document.getElementById('alb-photo-grid');
+  // simulate photos with emoji + gradient backgrounds
+  const bgs=['bg1','bg2','bg3','bg4','bg5','bg6','bg7','bg8'];
+  grid.innerHTML=a.photos.concat(a.photos).slice(0,a.count).map((p,i)=>
+    `<div class="alb-photo ${bgs[i%8]}" onclick="void(0)">${p}</div>`
+  ).join('');
+  document.getElementById('album-lightbox').classList.add('open');
+}
+
+function closeAlbumLightbox(){
+  document.getElementById('album-lightbox').classList.remove('open');
+}
+
+function openCreateAlbum(){
+  document.getElementById('create-album-modal').classList.add('open');
+  document.getElementById('album-name-inp').value='';
+  selectedPrivacy='public';selectedExpiry='7d';
+  document.getElementById('priv-pub').className='privacy-opt sel-pub';
+  document.getElementById('priv-priv').className='privacy-opt';
+  document.querySelectorAll('.expiry-chip').forEach(c=>{c.classList.remove('on');if(c.dataset&&c.getAttribute('onclick')&&c.getAttribute('onclick').includes('7d'))c.classList.add('on');});
+}
+
+function closeCreateAlbum(){
+  document.getElementById('create-album-modal').classList.remove('open');
+}
+
+function selectPrivacy(p){
+  selectedPrivacy=p;
+  document.getElementById('priv-pub').className='privacy-opt'+(p==='public'?' sel-pub':'');
+  document.getElementById('priv-priv').className='privacy-opt'+(p==='private'?' sel-priv':'');
+}
+
+function selectExpiry(el,val){
+  selectedExpiry=val;
+  document.querySelectorAll('.expiry-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function createAlbum(){
+  const name=document.getElementById('album-name-inp').value.trim()||'New Album';
+  const emojis=['📷','🖼️','🌟','🎨','🔥','✨','🌊','🏔️'];
+  const newAlbum={
+    id:'a'+Date.now(),
+    name,
+    privacy:selectedPrivacy,
+    expiry:selectedExpiry,
+    photos:[emojis[Math.floor(Math.random()*emojis.length)]],
+    count:0,
+    created:'Just now',
+  };
+  myAlbums.unshift(newAlbum);
+  closeCreateAlbum();
+  renderAlbums('albums-grid-m');
+  renderAlbums('albums-grid-d');
+  // toast confirmation
+  showToast('📸','Album created','\"'+name+'\" · '+selectedPrivacy+' · tap to add photos','cruise',()=>{openAlbumLightbox(newAlbum.id);});
+}
+
+// ── SHARE PICKER ──
+function openSharePicker(suffix){
+  activeShareSuffix=suffix;
+  const list=document.getElementById('share-album-list');
+  list.innerHTML=myAlbums.map(a=>`
+    <div class="share-album-row" onclick="shareAlbum('${a.id}')">
+      <div class="share-alb-thumb">${a.photos[0]||'📷'}</div>
+      <div>
+        <div class="share-alb-name">${a.name}</div>
+        <div class="share-alb-meta">${a.count} photos · ${a.privacy==='public'?'👁 Public':'🔒 Private'} · expires ${a.expiry}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('share-picker').classList.add('open');
+}
+let activeShareSuffix='m';
+
+function closeSharePicker(){
+  document.getElementById('share-picker').classList.remove('open');
+}
+
+function shareAlbum(albumId){
+  const a=myAlbums.find(x=>x.id===albumId);if(!a)return;
+  closeSharePicker();
+  const s=activeShareSuffix==='active'?(window.innerWidth<768?'m':'d'):activeShareSuffix;
+  const msgs=document.getElementById('cmsgs-'+s);if(!msgs)return;
+  // album bubble
+  const wrap=document.createElement('div');wrap.className='msg me';
+  wrap.innerHTML=`<div class="album-bubble" onclick="openAlbumLightbox('${a.id}')">
+    <div class="alb-bub-thumb">${a.photos.slice(0,4).map(p=>`<div class="alb-bub-cell">${p}</div>`).join('')}</div>
+    <div class="alb-bub-info"><span class="alb-bub-icon">📸</span><span class="alb-bub-name">${a.name}</span><span class="alb-bub-count">${a.count} photos</span></div>
+    <div class="alb-bub-p2p">🔒 P2P transfer · expires ${a.expiry}</div>
+  </div><div class="msg-t" style="text-align:right">just now · sending…</div>`;
+  msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+  // simulate delivery confirmation after 1.8s
+  setTimeout(()=>{
+    const t=wrap.querySelector('.msg-t');
+    if(t)t.textContent='just now · delivered ✓';
+  },1800);
+}
+
+function openAlbumsM(){
+  renderAlbums('albums-grid-m');
+  showScreenM('screen-albums-m');
+}
+
+// ── SIMULATED INCOMING ALBUM SHARE ──
+function simIncomingAlbum(suffix){
+  const activeChat=suffix==='m'
+    ? document.getElementById('screen-chat-m')?.classList.contains('active')
+    : document.querySelector('#view-chat')?.classList.contains('active');
+  if(!activeChat)return;
+  const msgsId='cmsgs-'+suffix;
+  const msgs=document.getElementById(msgsId);if(!msgs)return;
+  const simAlbums=[
+    {name:'Summer Shots',photos:['🌊','🏖️','🌅','☀️'],count:8,expiry:'24h'},
+    {name:'Gym Progress',photos:['💪','🏋️','🔥','⚡'],count:5,expiry:'7 days'},
+    {name:'Weekend Vibes',photos:['🍻','🎉','🌃','😎'],count:10,expiry:'7 days'},
+  ];
+  const a=simAlbums[Math.floor(Math.random()*simAlbums.length)];
+  const typing=showTyping(msgsId,activeChatSource);
+  setTimeout(()=>{
+    if(typing)typing.remove();
+    const cls='msg them';
+    const wrap=document.createElement('div');wrap.className=cls;
+    wrap.innerHTML=`<div class="album-bubble">
+      <div class="alb-bub-thumb">${a.photos.slice(0,4).map(p=>`<div class="alb-bub-cell">${p}</div>`).join('')}</div>
+      <div class="alb-bub-info"><span class="alb-bub-icon">📸</span><span class="alb-bub-name">${a.name}</span><span class="alb-bub-count">${a.count} photos</span></div>
+      <div class="alb-bub-p2p">🔒 P2P transfer · expires ${a.expiry} · tap to save</div>
+    </div><div class="msg-t">just now · received ✓</div>`;
+    msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+  },1600+Math.random()*600);
+}
+
+// ── ALBUM NAV HELPER ──
+function setNavM(a){
+  ['cruise','match','msgs','albums','profile'].forEach(id=>{const e=document.getElementById('mnav-'+id);if(e)e.className='nav-item';});
+  const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',albums:'on-neutral',profile:'on-neutral'};
+  if(map[a])document.getElementById('mnav-'+a)?.classList.add(map[a]);
+}
+
+// ════════════════════════════════════════
+
 
 const simProfiles=[
   {name:'Marco',emoji:'🧑',source:'cruise',msgs:['hey 👋','you near Church St?','nice profile','you free tonight?','what are you into?']},
@@ -1243,6 +1583,16 @@ function startSimulation(){
   setTimeout(()=>simAddMapPeer(mapM||mapD,'m'), 14000);
   setTimeout(simMatchToast, 22000);
   setTimeout(simInboxMessage, 30000);
+  // incoming album share after ~40s
+  setTimeout(()=>{
+    const s=window.innerWidth<768?'m':'d';
+    simIncomingAlbum(s);
+    showToast('📸','Tyler shared an album with you','Gym Progress · 5 photos · tap to open','cruise',()=>{
+      const p=profiles[1];
+      if(window.innerWidth<768){openChatM(p,'cruise');}
+      else{openChatD(p,'cruise');}
+    });
+  },42000);
 
   // then settle into organic rhythm
   // peer count fluctuates every 8-15s
