@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080a0f">
+<title>Bunk — bunk.gay</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080a0f;--surface:#0e1118;--surface2:#151b26;--surface3:#1d2535;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --text:#edf0f7;--muted:#5a6478;--muted2:#8a94a8;
+  --cruise:#ff4500;--cruise-dim:rgba(255,69,0,0.15);--cruise-glow:rgba(255,69,0,0.25);
+  --match:#00d4aa;--match-dim:rgba(0,212,170,0.12);--match-glow:rgba(0,212,170,0.2);
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+  --sidebar-w:260px;
+}
+html,body{height:100%;background:var(--bg);overflow:hidden}
+body{color:var(--text);font-family:'DM Sans',sans-serif}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.5}
+
+/* ── SHELLS ── */
+#shell-mobile{display:flex;position:fixed;inset:0;align-items:center;justify-content:center;background:var(--bg)}
+#app-mobile{display:flex;flex-direction:column;width:100%;max-width:430px;height:100%;position:relative;overflow:hidden;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+#shell-desktop{display:none;position:fixed;inset:0;flex-direction:row;background:var(--bg)}
+@media(min-width:768px){#shell-mobile{display:none}#shell-desktop{display:flex}}
+
+/* ── SIDEBAR ── */
+.ds-sidebar{width:var(--sidebar-w);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface);padding-top:24px;z-index:10}
+@media(min-width:768px) and (max-width:1099px){:root{--sidebar-w:220px}}
+.ds-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding:0 20px 2px}
+.ds-domain{font-family:'DM Mono',monospace;font-size:10px;color:var(--cruise);letter-spacing:.1em;padding:0 20px 16px;border-bottom:1px solid var(--border)}
+.ds-peer{display:flex;align-items:center;gap:7px;padding:11px 20px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace}
+.peer-dot{width:7px;height:7px;border-radius:50%;background:var(--cruise);box-shadow:0 0 6px var(--cruise);flex-shrink:0;animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.ds-mode-toggle{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.ds-mode-btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;cursor:pointer;transition:all .2s;color:var(--muted);display:flex;align-items:center;gap:8px;width:100%}
+.ds-mode-btn.active-cruise{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise);box-shadow:0 0 14px var(--cruise-glow)}
+.ds-mode-btn.active-match{background:var(--match-dim);border-color:var(--match);color:var(--match);box-shadow:0 0 14px var(--match-glow)}
+.ds-nav{flex:1;padding:12px 0;overflow-y:auto}
+.ds-nav-section{padding:14px 20px 5px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace}
+.ds-nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s}
+.ds-nav-item svg{width:17px;height:17px;flex-shrink:0}
+.ds-nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.ds-nav-item.on-cruise{color:var(--cruise);border-left-color:var(--cruise);background:var(--cruise-dim)}
+.ds-nav-item.on-match{color:var(--match);border-left-color:var(--match);background:var(--match-dim)}
+.ds-nav-item.on-neutral{color:var(--text);border-left-color:var(--text);background:rgba(255,255,255,.04)}
+.ds-profile-strip{display:flex;align-items:center;gap:10px;padding:13px 16px;border-top:1px solid var(--border);cursor:pointer;transition:background .15s}
+.ds-profile-strip:hover{background:rgba(255,255,255,.03)}
+.ds-av{width:36px;height:36px;border-radius:50%;background:var(--surface3);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ds-av-name{font-size:13px;font-weight:500}
+.ds-av-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* ── MAIN + DETAIL ── */
+.ds-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.ds-detail{width:340px;flex-shrink:0;border-left:1px solid var(--border);display:none;flex-direction:column;overflow:hidden}
+.ds-detail.open{display:flex}
+@media(min-width:1100px){.ds-detail{display:flex}}
+@media(min-width:768px) and (max-width:1099px){.ds-detail{display:none!important}}
+
+/* ── SCREENS / VIEWS ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s cubic-bezier(.4,0,.2,1);transform:translateY(10px)}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+.view{display:none;flex-direction:column;height:100%;overflow:hidden}
+.view.active{display:flex}
+
+/* ── SPLASH ── */
+#screen-splash{background:var(--bg);align-items:center;justify-content:center;gap:20px}
+.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:96px;letter-spacing:6px;background:linear-gradient(135deg,#ff4500 0%,#ff8c00 50%,#ff4500 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:logoIn .8s cubic-bezier(.2,0,.2,1) both}
+.splash-url{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.2em;color:var(--cruise);animation:fadeIn 1s ease .5s both}
+@keyframes logoIn{from{opacity:0;transform:scale(.7) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.splash-loader{width:48px;height:2px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:28px;animation:fadeIn .5s ease .6s both}
+.splash-loader-fill{height:100%;background:var(--cruise);border-radius:2px;animation:load 2s ease forwards .7s}
+@keyframes load{from{width:0}to{width:100%}}
+
+/* ── ONBOARD ── */
+#screen-onboard{background:var(--bg);padding:calc(var(--safe-top) + 60px) 28px 40px;overflow-y:auto}
+.onboard-wordmark{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:4px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:2px}
+.onboard-url{font-family:'DM Mono',monospace;font-size:11px;color:var(--cruise);letter-spacing:.1em;margin-bottom:8px}
+.onboard-sub{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:32px}
+.mode-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.mode-card{padding:18px;border-radius:16px;border:1px solid var(--border);background:var(--surface);display:flex;gap:15px;align-items:flex-start}
+.mode-card-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mode-card.cruise .mode-card-icon{background:var(--cruise-dim)}
+.mode-card.match .mode-card-icon{background:var(--match-dim)}
+.mode-card-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;margin-bottom:3px}
+.mode-card.cruise .mode-card-title{color:var(--cruise)}
+.mode-card.match .mode-card-title{color:var(--match)}
+.mode-card-desc{font-size:12px;color:var(--muted2);line-height:1.6}
+.privacy-strip{display:flex;gap:10px;align-items:flex-start;padding:13px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.1);border-radius:10px;margin-bottom:26px;font-size:11px;color:var(--muted2);line-height:1.6}
+.privacy-strip span:first-child{font-size:15px;flex-shrink:0;margin-top:-1px}
+.btn-cta{width:100%;padding:16px;background:var(--cruise);color:#fff;border:none;border-radius:13px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 24px var(--cruise-glow)}
+.btn-cta:hover{transform:scale(1.01);box-shadow:0 6px 28px var(--cruise-glow)}
+.btn-ghost-sm{width:100%;padding:13px;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:13px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;margin-top:9px;transition:color .2s}
+.btn-ghost-sm:hover{color:var(--text)}
+
+/* ── SETUP ── */
+.setup-hdr{padding:22px 22px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.setup-step{font-size:10px;letter-spacing:.15em;color:var(--cruise);text-transform:uppercase;margin-bottom:3px;font-family:'DM Mono',monospace}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px}
+.setup-body{padding:18px 22px;display:flex;flex-direction:column;gap:15px;overflow-y:auto;flex:1;padding-bottom:40px}
+.avatar-pick{display:flex;flex-direction:column;align-items:center;gap:9px;padding:22px;background:var(--surface);border:1.5px dashed var(--border2);border-radius:13px;cursor:pointer;transition:border-color .2s}
+.avatar-pick:hover{border-color:var(--cruise)}
+.avatar-ring{width:76px;height:76px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:30px;border:2px solid var(--border2);overflow:hidden}
+.avatar-ring img{width:100%;height:100%;object-fit:cover;display:none;border-radius:50%}
+.avatar-lbl{font-size:11px;color:var(--muted);letter-spacing:.05em}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace}
+.fld-in{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;width:100%}
+.fld-in:focus{border-color:var(--cruise)}
+.fld-in::placeholder{color:var(--muted)}
+select.fld-in{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235a6478' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-size:13px;padding-right:30px}
+select.fld-in option{background:#151b26}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.tag-grid{display:flex;flex-wrap:wrap;gap:6px}
+.tag{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace}
+.tag.on{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top) + 12px) 15px 10px;flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(8,10,15,.9);backdrop-filter:blur(12px);z-index:10}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:3px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.peer-pill{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.icon-btn{width:33px;height:33px;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted);transition:color .15s,background .15s,border-color .15s}
+.icon-btn:hover{color:var(--text)}
+.icon-btn.active-view{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+
+/* ── MODE TOGGLE ── */
+.mode-toggle{display:flex;padding:9px 14px;gap:7px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.mode-btn{flex:1;padding:9px;border-radius:9px;border:1px solid var(--border);background:var(--surface);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;cursor:pointer;transition:all .2s;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:5px}
+.mode-btn.active-cruise{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise);box-shadow:0 0 12px var(--cruise-glow)}
+.mode-btn.active-match{background:var(--match-dim);border-color:var(--match);color:var(--match);box-shadow:0 0 12px var(--match-glow)}
+
+/* ── CRUISE SUBVIEW TOGGLE (map / grid) ── */
+.cruise-view-toggle{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+.cvt-btn{flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.cvt-btn.on{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+
+/* ── MAP ── */
+.map-wrap{flex:1;position:relative;overflow:hidden}
+#bunk-map,#bunk-map-d{width:100%;height:100%;background:var(--bg)}
+
+/* Leaflet dark overrides */
+.leaflet-container{background:#080a0f!important;font-family:'DM Sans',sans-serif}
+.leaflet-tile-pane{filter:brightness(.8) saturate(.5) hue-rotate(185deg) invert(1) sepia(.4)}
+.leaflet-control-zoom{border:1px solid var(--border)!important;border-radius:10px!important;overflow:hidden!important;background:var(--surface)!important;box-shadow:0 4px 20px rgba(0,0,0,.5)!important}
+.leaflet-control-zoom a{background:var(--surface)!important;color:var(--muted2)!important;border-bottom:1px solid var(--border)!important;line-height:26px!important;width:26px!important;height:26px!important;font-size:14px!important;transition:color .15s!important}
+.leaflet-control-zoom a:hover{color:var(--text)!important;background:var(--surface2)!important}
+.leaflet-control-attribution{display:none!important}
+.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border2)!important;border-radius:14px!important;box-shadow:0 8px 32px rgba(0,0,0,.6)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;padding:0!important}
+.leaflet-popup-tip-container{display:none!important}
+.leaflet-popup-close-button{color:var(--muted)!important;top:10px!important;right:10px!important;font-size:16px!important;width:22px!important;height:22px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:var(--surface2)!important;border-radius:50%!important;border:1px solid var(--border)!important;z-index:10}
+
+/* Peer marker */
+.peer-marker-wrap{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.peer-marker-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--cruise);opacity:.35;animation:pring 2.5s ease infinite}
+.peer-marker-ring2{position:absolute;inset:4px;border-radius:50%;border:1.5px solid var(--cruise);opacity:.2;animation:pring 2.5s ease .6s infinite}
+@keyframes pring{0%{transform:scale(1);opacity:.35}70%{transform:scale(1.5);opacity:0}100%{transform:scale(1.5);opacity:0}}
+.peer-marker-dot{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:2.5px solid var(--cruise);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 12px var(--cruise-glow),0 3px 10px rgba(0,0,0,.7);cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;z-index:2}
+.peer-marker-dot:hover{transform:scale(1.12);box-shadow:0 0 20px var(--cruise-glow),0 4px 14px rgba(0,0,0,.8)}
+.peer-marker-dot.online::after{content:'';position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;background:var(--cruise);border:2px solid var(--bg);box-shadow:0 0 5px var(--cruise)}
+
+/* Me marker */
+.me-marker-dot{width:18px;height:18px;border-radius:50%;background:var(--match);border:2.5px solid var(--bg);box-shadow:0 0 10px var(--match-glow);animation:mepulse 2s ease infinite}
+@keyframes mepulse{0%,100%{box-shadow:0 0 8px var(--match-glow)}50%{box-shadow:0 0 18px var(--match-glow)}}
+.me-ring{position:absolute;inset:-8px;border-radius:50%;border:1.5px solid var(--match);opacity:.3;animation:pring 3s ease infinite}
+
+/* Map popup */
+.map-popup{width:220px;padding:14px;font-family:'DM Sans',sans-serif}
+.mp-header{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.mp-av{width:42px;height:42px;border-radius:50%;border:2px solid var(--cruise);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--surface3)}
+.mp-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.5px}
+.mp-meta{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:1px}
+.mp-bio{font-size:12px;color:rgba(237,240,247,.75);line-height:1.5;margin-bottom:10px}
+.mp-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.mp-tag{padding:2px 8px;border-radius:20px;border:1px solid var(--border);font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace}
+.mp-actions{display:flex;gap:7px}
+.mp-btn{flex:1;padding:8px;border-radius:9px;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;transition:transform .15s}
+.mp-btn:active{transform:scale(.96)}
+.mp-btn-wave{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.mp-btn-msg{background:var(--cruise);color:#fff;box-shadow:0 3px 10px var(--cruise-glow)}
+.mp-enc{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* Map location bar */
+.map-loc-bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:500;display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(8,10,15,.85);border:1px solid var(--border2);border-radius:22px;backdrop-filter:blur(12px);white-space:nowrap;font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;pointer-events:none}
+.map-loc-dot{width:7px;height:7px;border-radius:50%;background:var(--match);box-shadow:0 0 7px var(--match);animation:blink 2s ease infinite;flex-shrink:0}
+
+/* Map peer count badge */
+.map-count-badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:500;padding:5px 12px;background:rgba(8,10,15,.8);border:1px solid var(--border2);border-radius:20px;font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;backdrop-filter:blur(8px);pointer-events:none}
+.map-count-badge span{color:var(--cruise)}
+
+/* ── CRUISE GRID ── */
+.cruise-filters{display:flex;gap:6px;padding:9px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.cruise-filters::-webkit-scrollbar{display:none}
+.filter-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:10px;white-space:nowrap;cursor:pointer;color:var(--muted);font-family:'DM Mono',monospace;transition:all .15s}
+.filter-chip.on{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+.cruise-grid-wrap{flex:1;overflow-y:auto;padding:9px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.cruise-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:900px){.ds-main .cruise-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1300px){.ds-main .cruise-grid{grid-template-columns:repeat(4,1fr)}}
+.cruise-card{position:relative;border-radius:13px;overflow:hidden;cursor:pointer;background:var(--surface2);border:1px solid var(--border);transition:transform .2s,border-color .2s;animation:cardIn .4s ease both}
+.cruise-card:nth-child(even){margin-top:14px}
+.cruise-card:hover{transform:scale(1.025);border-color:var(--border2)}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cc-photo{width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;font-size:46px}
+.cc-grad{position:absolute;bottom:0;left:0;right:0;height:70%;background:linear-gradient(to top,rgba(8,10,15,.97) 0%,rgba(8,10,15,.5) 55%,transparent 100%)}
+.cc-info{position:absolute;bottom:0;left:0;right:0;padding:9px 8px}
+.cc-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.5px}
+.cc-meta{font-size:9px;color:var(--muted2);margin-top:1px;font-family:'DM Mono',monospace}
+.cc-tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.cc-tag{padding:2px 5px;border-radius:7px;font-size:8px;font-family:'DM Mono',monospace}
+.cc-tag-o{background:var(--cruise-dim);color:var(--cruise)}
+.cc-tag-t{background:var(--match-dim);color:var(--match)}
+.cc-tag-g{background:rgba(255,255,255,.06);color:var(--muted2)}
+.online-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--cruise);border:2px solid var(--bg);box-shadow:0 0 6px var(--cruise)}
+.p2p-tag{position:absolute;top:8px;left:8px;padding:2px 5px;background:rgba(8,10,15,.75);border:1px solid var(--border2);border-radius:4px;font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;backdrop-filter:blur(4px)}
+
+/* ── MATCHMAKER ── */
+.match-filters{display:flex;gap:6px;padding:9px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border);scrollbar-width:none}
+.match-filters::-webkit-scrollbar{display:none}
+.mfilter{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:10px;white-space:nowrap;cursor:pointer;color:var(--muted);font-family:'DM Mono',monospace;transition:all .15s}
+.mfilter.on{background:var(--match-dim);border-color:var(--match);color:var(--match)}
+.swipe-arena{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:12px 16px;overflow:hidden}
+.swipe-card{position:absolute;width:calc(100% - 32px);max-width:340px;border-radius:20px;overflow:hidden;background:var(--surface2);border:1px solid var(--border2);cursor:grab;user-select:none;transition:box-shadow .2s;touch-action:none}
+.swipe-card:active{cursor:grabbing}
+.swipe-card.is-top{z-index:5}
+.swipe-card.is-mid{z-index:4;transform:scale(.96) translateY(10px);opacity:.7}
+.swipe-card.is-bot{z-index:3;transform:scale(.92) translateY(20px);opacity:.4}
+.sc-photo{width:100%;height:290px;display:flex;align-items:center;justify-content:center;font-size:76px;position:relative}
+.sc-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,10,15,1) 0%,rgba(8,10,15,.3) 50%,transparent 100%)}
+.sc-body{padding:13px 16px 17px}
+.sc-name-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.sc-name{font-family:'Bebas Neue',sans-serif;font-size:25px;letter-spacing:1px}
+.sc-age{font-size:14px;color:var(--muted2);font-family:'DM Mono',monospace}
+.sc-meta{font-size:11px;color:var(--muted2);margin-bottom:7px;font-family:'DM Mono',monospace}
+.sc-bio{font-size:12px;color:rgba(237,240,247,.8);line-height:1.6;margin-bottom:9px}
+.sc-tags{display:flex;flex-wrap:wrap;gap:5px}
+.sc-tag{padding:3px 9px;border-radius:20px;border:1px solid var(--border);font-size:10px;background:var(--surface3);color:var(--muted2);font-family:'DM Mono',monospace}
+.stamp{position:absolute;top:22px;font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:3px;border:3px solid;border-radius:7px;padding:3px 11px;opacity:0;pointer-events:none;transition:opacity .1s;transform:rotate(-15deg)}
+.stamp-yes{left:16px;color:var(--match);border-color:var(--match)}
+.stamp-nope{right:16px;color:var(--cruise);border-color:var(--cruise);transform:rotate(15deg)}
+.swipe-actions{display:flex;justify-content:center;align-items:center;gap:18px;padding:11px 22px calc(11px + var(--safe-bot));flex-shrink:0;border-top:1px solid var(--border)}
+.action-btn{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:20px;transition:transform .15s,box-shadow .15s}
+.action-btn:active{transform:scale(.92)}
+.btn-nope{background:var(--surface2);border:1.5px solid rgba(255,69,0,.3);color:var(--cruise)}
+.btn-nope:hover{box-shadow:0 4px 16px var(--cruise-glow);border-color:var(--cruise)}
+.btn-like{background:var(--match);color:#000;width:62px;height:62px;font-size:25px;box-shadow:0 4px 20px var(--match-glow)}
+.btn-like:hover{transform:scale(1.06)}
+.btn-star{background:var(--surface2);border:1.5px solid rgba(255,200,0,.3);color:#ffd700}
+.btn-star:hover{box-shadow:0 4px 16px rgba(255,215,0,.2);border-color:#ffd700}
+.match-flash{position:absolute;inset:0;z-index:100;background:rgba(0,212,170,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
+.match-flash.show{opacity:1;pointer-events:all}
+.match-flash-title{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--match);text-shadow:0 0 36px var(--match-glow);animation:ptxt 1s ease infinite}
+@keyframes ptxt{0%,100%{opacity:1}50%{opacity:.7}}
+.match-flash-sub{font-size:12px;color:var(--muted2);letter-spacing:.05em}
+.btn-send-msg{margin-top:8px;padding:12px 28px;background:var(--match);color:#000;border:none;border-radius:11px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;box-shadow:0 4px 20px var(--match-glow)}
+.btn-keep-swiping{background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:11px;padding:10px 24px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace}
+
+/* ── PROFILE DETAIL ── */
+.profile-hero{min-height:48vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:86px;flex-shrink:0}
+.hero-grad{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(8,10,15,.5) 50%,rgba(8,10,15,.2) 100%)}
+.hero-back{position:absolute;top:14px;left:13px;width:34px;height:34px;border-radius:50%;background:rgba(8,10,15,.75);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;backdrop-filter:blur(8px);z-index:10}
+.pd-scroll{overflow-y:auto;flex:1}
+.pd-body{padding:0 18px 110px}
+.pd-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1.5px;margin-bottom:3px}
+.pd-meta{font-size:11px;color:var(--muted2);margin-bottom:11px;font-family:'DM Mono',monospace}
+.pd-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.pd-tag{padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:11px;color:var(--muted2);background:var(--surface);font-family:'DM Mono',monospace}
+.pd-section{margin-bottom:14px}
+.pd-section-lbl{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-family:'DM Mono',monospace}
+.pd-bio{font-size:13px;line-height:1.75;color:rgba(237,240,247,.8)}
+.peer-box{padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:11px}
+.peer-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px;font-family:'DM Mono',monospace}
+.peer-row:last-child{border-bottom:none}
+.peer-k{color:var(--muted)}
+.peer-v{color:var(--cruise)}
+.pd-actions{position:absolute;bottom:0;left:0;right:0;display:flex;gap:9px;padding:13px 18px calc(13px + var(--safe-bot));background:linear-gradient(to top,var(--bg) 60%,transparent)}
+.pd-btn{flex:1;padding:13px;border-radius:11px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;border:none;cursor:pointer;transition:transform .15s}
+.pd-btn:active{transform:scale(.97)}
+.pd-btn-wave{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.pd-btn-msg{background:var(--cruise);color:#fff;box-shadow:0 4px 16px var(--cruise-glow)}
+
+/* ── CHAT ── */
+.chat-hdr{display:flex;align-items:center;gap:11px;padding:13px 15px 11px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(8,10,15,.9);backdrop-filter:blur(12px)}
+.chat-av{width:37px;height:37px;border-radius:50%;background:var(--surface3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.chat-av-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.5px}
+.chat-av-status{font-size:10px;color:var(--cruise);font-family:'DM Mono',monospace}
+.e2e-bar{text-align:center;padding:6px 13px;font-size:9px;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--border);flex-shrink:0;font-family:'DM Mono',monospace}
+.e2e-bar span{color:var(--match)}
+.chat-msgs{flex:1;overflow-y:auto;padding:11px 13px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.msg{max-width:80%;display:flex;flex-direction:column;gap:3px;animation:msgIn .2s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.them{align-self:flex-start}
+.msg.me{align-self:flex-end}
+.bubble{padding:9px 12px;border-radius:15px;font-size:13px;line-height:1.5}
+.msg.them .bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:3px}
+.msg.me .bubble{background:var(--cruise-dim);border:1px solid rgba(255,69,0,.2);border-bottom-right-radius:3px}
+.msg-t{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:0 4px}
+.msg.me .msg-t{text-align:right}
+.chat-input-bar{display:flex;gap:8px;align-items:flex-end;padding:10px 13px calc(10px + var(--safe-bot));border-top:1px solid var(--border);flex-shrink:0}
+.chat-in{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:9px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:none;max-height:100px;transition:border-color .2s;line-height:1.4}
+.chat-in:focus{border-color:var(--cruise)}
+.chat-in::placeholder{color:var(--muted)}
+.send-btn{width:39px;height:39px;border-radius:50%;background:var(--cruise);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px var(--cruise-glow);transition:transform .15s}
+.send-btn:active{transform:scale(.92)}
+.send-btn svg{width:14px;height:14px;fill:white}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:rgba(8,10,15,.95);backdrop-filter:blur(12px);flex-shrink:0;padding-bottom:var(--safe-bot)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 0 7px;cursor:pointer;color:var(--muted);font-size:9px;letter-spacing:.07em;text-transform:uppercase;gap:3px;transition:color .15s;font-family:'DM Mono',monospace}
+.nav-item svg{width:18px;height:18px}
+.nav-item.on-cruise{color:var(--cruise)}
+.nav-item.on-match{color:var(--match)}
+.nav-item.on-neutral{color:var(--text)}
+
+/* ── DETAIL PANEL ── */
+.detail-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:36px;text-align:center}
+.detail-welcome-logo{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:6px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.detail-welcome-url{font-family:'DM Mono',monospace;font-size:11px;color:var(--cruise);letter-spacing:.1em}
+.detail-welcome-sub{font-size:12px;color:var(--muted2);line-height:1.7;max-width:220px}
+.detail-enc{display:flex;align-items:center;gap:7px;padding:9px 14px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.1);border-radius:9px;font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:10px}
+.ds-profile-view{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.ds-content-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 13px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ds-content-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px}
+.ds-content-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
+
+/* ── INBOX ── */
+.inbox-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.inbox-hdr-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px}
+.inbox-hdr-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
+.inbox-filter{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.inbox-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:10px;cursor:pointer;color:var(--muted);font-family:'DM Mono',monospace;transition:all .15s}
+.inbox-chip.on-all{background:rgba(255,255,255,.06);border-color:var(--border2);color:var(--text)}
+.inbox-chip.on-cruise{background:var(--cruise-dim);border-color:var(--cruise);color:var(--cruise)}
+.inbox-chip.on-match{background:var(--match-dim);border-color:var(--match);color:var(--match)}
+.inbox-list{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.inbox-thread{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;position:relative}
+.inbox-thread:hover{background:rgba(255,255,255,.025)}
+.inbox-thread:last-child{border-bottom:none}
+.inbox-av-wrap{position:relative;flex-shrink:0}
+.inbox-av{width:44px;height:44px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--border2)}
+.inbox-av.cruise-av{border-color:var(--cruise);box-shadow:0 0 8px var(--cruise-glow)}
+.inbox-av.match-av{border-color:var(--match);box-shadow:0 0 8px var(--match-glow)}
+.inbox-source-badge{position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:8px}
+.inbox-source-badge.cruise-badge{background:var(--cruise)}
+.inbox-source-badge.match-badge{background:var(--match)}
+.inbox-body{flex:1;min-width:0}
+.inbox-name-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px}
+.inbox-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-time{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:8px}
+.inbox-preview{font-size:12px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inbox-preview.unread{color:var(--text)}
+.inbox-unread-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:8px}
+.inbox-unread-dot.cruise-dot{background:var(--cruise);box-shadow:0 0 5px var(--cruise)}
+.inbox-unread-dot.match-dot{background:var(--match);box-shadow:0 0 5px var(--match)}
+.inbox-source-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.06em;margin-top:2px}
+.inbox-source-label.cruise-label{color:var(--cruise)}
+.inbox-source-label.match-label{color:var(--match)}
+.inbox-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;text-align:center;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace}
+
+/* chat source badge in header */
+.chat-source-badge{padding:3px 9px;border-radius:20px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.06em;font-weight:600}
+.chat-source-badge.cruise{background:var(--cruise-dim);color:var(--cruise);border:1px solid var(--cruise)}
+.chat-source-badge.match{background:var(--match-dim);color:var(--match);border:1px solid var(--match)}
+
+/* cruise bubble: already orange. match bubbles override */
+.msg.me.match-msg .bubble{background:var(--match-dim);border-color:rgba(0,212,170,.25)}
+
+/* photo bgs */
+.bg1{background:linear-gradient(145deg,#1a2535,#0d3a2e)}.bg2{background:linear-gradient(145deg,#2a1030,#1a0a3a)}.bg3{background:linear-gradient(145deg,#352010,#3a1a0a)}.bg4{background:linear-gradient(145deg,#103035,#0a2a3a)}.bg5{background:linear-gradient(145deg,#301020,#2a0a18)}.bg6{background:linear-gradient(145deg,#102535,#0a203a)}.bg7{background:linear-gradient(145deg,#253510,#1a2a0a)}.bg8{background:linear-gradient(145deg,#351510,#3a100a)}
+</style>
+</head>
+<body>
+
+<!-- ══════════ MOBILE ══════════ -->
+<div id="shell-mobile">
+<div id="app-mobile">
+
+<div class="screen active" id="screen-splash">
+  <div class="splash-logo">BUNK</div>
+  <div class="splash-url">bunk.gay</div>
+  <div class="splash-loader"><div class="splash-loader-fill"></div></div>
+</div>
+
+<div class="screen" id="screen-onboard">
+  <div class="onboard-wordmark">BUNK</div>
+  <div class="onboard-url">bunk.gay</div>
+  <div class="onboard-sub">Two modes. Zero servers. Your data never leaves your device.</div>
+  <div class="mode-cards">
+    <div class="mode-card cruise"><div class="mode-card-icon">🔥</div><div><div class="mode-card-title">Cruise</div><div class="mode-card-desc">Live map of who's near you. Tap a dot to peek. Grid view too. You vanish when you close the app.</div></div></div>
+    <div class="mode-card match"><div class="mode-card-icon">✨</div><div><div class="mode-card-title">Matchmaker</div><div class="mode-card-desc">Filter by what matters. Swipe. Match only when mutual. No algorithm, no ads.</div></div></div>
+  </div>
+  <div class="privacy-strip"><span>🔐</span><span>End-to-end encrypted · WebRTC peer-to-peer · No account, no email, no server storage. Ever.</span></div>
+  <button class="btn-cta" onclick="goSetupM()">Create my profile</button>
+  <button class="btn-ghost-sm" onclick="goMainM()">Browse as guest</button>
+</div>
+
+<div class="screen" id="screen-setup-m" style="overflow-y:auto;background:var(--bg)">
+  <div class="setup-hdr" style="padding-top:calc(var(--safe-top) + 46px)">
+    <div class="setup-step">Profile setup</div><div class="setup-title">Who are you?</div>
+  </div>
+  <div class="setup-body">
+    <div class="avatar-pick" onclick="document.getElementById('av-m').click()"><div class="avatar-ring"><img id="avimg-m" src="" alt=""><span id="avph-m">📷</span></div><div class="avatar-lbl">tap to add photo</div></div>
+    <input type="file" id="av-m" style="display:none" accept="image/*" onchange="previewAv(this,'avimg-m','avph-m')">
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
+      <div class="fld"><label class="fld-lbl">Age</label><input class="fld-in" type="number" placeholder="28" min="18"></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
+      <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option></select></div>
+    </div>
+    <div class="fld"><label class="fld-lbl">About you</label><input class="fld-in" type="text" placeholder="Dog dad. Coffee addict."></div>
+    <div class="fld"><label class="fld-lbl">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Side</option></select></div>
+    <div class="fld"><label class="fld-lbl">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">Hookups</div><div class="tag" onclick="toggleTag(this)">Relationship</div></div></div>
+    <div class="fld"><label class="fld-lbl">Into</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Bears</div><div class="tag" onclick="toggleTag(this)">Twinks</div><div class="tag" onclick="toggleTag(this)">Daddies</div><div class="tag" onclick="toggleTag(this)">Jocks</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Kink</div></div></div>
+    <button class="btn-cta" onclick="goMainM()">Join Bunk · bunk.gay</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-main-m" style="background:var(--bg)">
+  <div class="topbar">
+    <div class="topbar-logo">BUNK</div>
+    <div class="peer-pill"><div class="peer-dot" id="pdot-m"></div><span id="pct-m">18 nearby</span></div>
+    <div style="display:flex;gap:6px">
+      <div class="icon-btn" id="view-toggle-m" onclick="toggleCruiseViewM()" title="Map / Grid">🗺️</div>
+      <div class="icon-btn" onclick="showScreenM('screen-setup-m')">👤</div>
+      <div class="icon-btn" onclick="openChatM(null)">💬</div>
+    </div>
+  </div>
+  <div class="mode-toggle">
+    <button class="mode-btn active-cruise" id="mbtn-cruise" onclick="setModeM('cruise')">🔥 Cruise</button>
+    <button class="mode-btn" id="mbtn-match" onclick="setModeM('match')">✨ Match</button>
+  </div>
+
+  <!-- CRUISE -->
+  <div id="m-cruise" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <!-- Map view -->
+    <div id="m-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column">
+      <div class="map-wrap" style="flex:1">
+        <div id="bunk-map"></div>
+        <div class="map-count-badge"><span id="map-count-m">18</span> peers nearby</div>
+        <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
+      </div>
+    </div>
+    <!-- Grid view -->
+    <div id="m-cruise-grid" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="cruise-filters"><div class="filter-chip on">All</div><div class="filter-chip">Online now</div><div class="filter-chip">Hookups</div><div class="filter-chip">Dates</div><div class="filter-chip">Friends</div><div class="filter-chip">Tops</div><div class="filter-chip">Bottoms</div></div>
+      <div class="cruise-grid-wrap"><div class="cruise-grid" id="cgrid-m"></div></div>
+    </div>
+  </div>
+
+  <!-- MATCH -->
+  <div id="m-match" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="match-filters"><div class="mfilter on">Nearby</div><div class="mfilter">18–25</div><div class="mfilter">26–35</div><div class="mfilter">36–45</div><div class="mfilter">Tops</div><div class="mfilter">Bottoms</div><div class="mfilter">Vers</div></div>
+    <div class="swipe-arena" id="sarena-m">
+      <div class="match-flash" id="mflash-m"><div style="font-size:42px">🎉</div><div class="match-flash-title">IT'S A MATCH</div><div class="match-flash-sub" id="msub-m"></div><button class="btn-send-msg" onclick="openChatM(null,'match');hideFlash('mflash-m')">Send a message</button><button class="btn-keep-swiping" onclick="hideFlash('mflash-m')">Keep swiping</button></div>
+    </div>
+    <div class="swipe-actions"><button class="action-btn btn-nope" onclick="doSwipe('m','left')">✕</button><button class="action-btn btn-like" onclick="doSwipe('m','right')">♥</button><button class="action-btn btn-star" onclick="doSwipe('m','super')">★</button></div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item on-cruise" id="mnav-cruise" onclick="setModeM('cruise');setNavM('cruise')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/></svg>Cruise</div>
+    <div class="nav-item" id="mnav-match" onclick="setModeM('match');setNavM('match')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Match</div>
+    <div class="nav-item" id="mnav-msgs" onclick="openInboxM();setNavM('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</div>
+    <div class="nav-item" id="mnav-profile" onclick="showScreenM('screen-setup-m')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-profile-m" style="background:var(--bg);overflow-y:auto">
+  <div class="profile-hero" id="phero-m"><div class="hero-grad"></div><div class="hero-back" onclick="showScreenM('screen-main-m')">←</div></div>
+  <div class="pd-body">
+    <div class="pd-name" id="pname-m"></div><div class="pd-meta" id="pmeta-m"></div>
+    <div class="pd-tags" id="ptags-m"></div>
+    <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-m"></div></div>
+    <div class="pd-section"><div class="pd-section-lbl">Peer connection</div>
+      <div class="peer-box"><div class="peer-row"><span class="peer-k">Protocol</span><span class="peer-v">WebRTC P2P</span></div><div class="peer-row"><span class="peer-k">Encryption</span><span class="peer-v">E2E · AES-256-GCM</span></div><div class="peer-row"><span class="peer-k">Peer ID</span><span class="peer-v" id="ppeer-m"></span></div><div class="peer-row"><span class="peer-k">Latency</span><span class="peer-v" id="plat-m"></span></div><div class="peer-row"><span class="peer-k">Server storage</span><span class="peer-v" style="color:var(--cruise)">None · bunk.gay</span></div></div>
+    </div>
+  </div>
+  <div class="pd-actions"><button class="pd-btn pd-btn-wave">👋 Wave</button><button class="pd-btn pd-btn-msg" onclick="openChatM(curM,'cruise')">Message</button></div>
+</div>
+
+<div class="screen" id="screen-inbox-m" style="background:var(--bg)">
+  <div class="topbar">
+    <div class="topbar-logo">BUNK</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Messages</div>
+    <div class="icon-btn" onclick="showScreenM('screen-main-m')">✕</div>
+  </div>
+  <div class="inbox-filter">
+    <div class="inbox-chip on-all" id="inbox-chip-all-m" onclick="filterInboxM('all')">All</div>
+    <div class="inbox-chip" id="inbox-chip-cruise-m" onclick="filterInboxM('cruise')">🔥 Cruise</div>
+    <div class="inbox-chip" id="inbox-chip-match-m" onclick="filterInboxM('match')">✨ Match</div>
+  </div>
+  <div class="inbox-list" id="inbox-list-m"></div>
+</div>
+
+<div class="screen" id="screen-chat-m" style="background:var(--bg)">
+  <div class="chat-hdr">
+    <div class="hero-back" style="position:static;width:29px;height:29px;font-size:13px;flex-shrink:0" onclick="showScreenM('screen-inbox-m')">←</div>
+    <div class="chat-av" id="cav-m"></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div class="chat-av-name" id="cname-m"></div>
+        <span class="chat-source-badge" id="csrc-badge-m"></span>
+      </div>
+      <div class="chat-av-status">● P2P connected · encrypted</div>
+    </div>
+    <div class="icon-btn">⋯</div>
+  </div>
+  <div class="e2e-bar">🔒 E2E encrypted · <span>zero messages stored · bunk.gay</span></div>
+  <div class="chat-msgs" id="cmsgs-m"></div>
+  <div class="chat-input-bar"><textarea class="chat-in" id="cin-m" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('m')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('m')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+</div>
+
+</div></div>
+
+<!-- ══════════ DESKTOP ══════════ -->
+<div id="shell-desktop">
+
+<div class="ds-sidebar">
+  <div class="ds-logo">BUNK</div>
+  <div class="ds-domain">bunk.gay · peer-to-peer encrypted</div>
+  <div class="ds-peer"><div class="peer-dot" id="pdot-d"></div><span id="pct-d">connecting…</span></div>
+  <div class="ds-mode-toggle">
+    <button class="ds-mode-btn active-cruise" id="dbtn-cruise" onclick="setModeD('cruise')">🔥 &nbsp;Cruise</button>
+    <button class="ds-mode-btn" id="dbtn-match" onclick="setModeD('match')">✨ &nbsp;Matchmaker</button>
+  </div>
+  <div class="ds-nav">
+    <div class="ds-nav-section">Discover</div>
+    <div class="ds-nav-item on-cruise" id="dnav-cruise" onclick="setModeD('cruise');setNavD('cruise')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/></svg>Cruise</div>
+    <div class="ds-nav-item" id="dnav-match" onclick="setModeD('match');setNavD('match')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Matchmaker</div>
+    <div class="ds-nav-section">Connect</div>
+    <div class="ds-nav-item" id="dnav-msgs" onclick="setViewD('msgs');setNavD('msgs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</div>
+    <div class="ds-nav-section">Account</div>
+    <div class="ds-nav-item" id="dnav-profile" onclick="setViewD('setup');setNavD('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</div>
+  </div>
+  <div class="ds-profile-strip" onclick="setViewD('setup');setNavD('profile')">
+    <div class="ds-av">🧑</div>
+    <div><div class="ds-av-name">Your profile</div><div class="ds-av-sub">bunk.gay · online</div></div>
+  </div>
+</div>
+
+<div class="ds-main">
+
+  <div class="view active" id="view-cruise">
+    <div class="ds-content-hdr">
+      <div><div class="ds-content-title">🔥 Cruise</div><div class="ds-content-sub" id="csub-d">Connecting to peers…</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="peer-pill"><div class="peer-dot" style="width:6px;height:6px"></div>Live</div>
+        <button class="cvt-btn on" id="cvt-map-d" onclick="setCruiseViewD('map')" style="width:auto;padding:6px 12px">🗺️ Map</button>
+        <button class="cvt-btn" id="cvt-grid-d" onclick="setCruiseViewD('grid')" style="width:auto;padding:6px 12px">⊞ Grid</button>
+      </div>
+    </div>
+    <!-- Map -->
+    <div id="d-cruise-map" style="flex:1;position:relative;display:flex;flex-direction:column">
+      <div class="map-wrap" style="flex:1">
+        <div id="bunk-map-d"></div>
+        <div class="map-count-badge"><span id="map-count-d">18</span> peers nearby</div>
+        <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m · bunk.gay</div>
+      </div>
+    </div>
+    <!-- Grid -->
+    <div id="d-cruise-grid" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="cruise-filters"><div class="filter-chip on">All</div><div class="filter-chip">Online now</div><div class="filter-chip">Hookups</div><div class="filter-chip">Dates</div><div class="filter-chip">Friends</div><div class="filter-chip">Bears</div><div class="filter-chip">Jocks</div><div class="filter-chip">Tops</div><div class="filter-chip">Bottoms</div></div>
+      <div class="cruise-grid-wrap"><div class="cruise-grid" id="cgrid-d"></div></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-match">
+    <div class="ds-content-hdr"><div><div class="ds-content-title">✨ Matchmaker</div><div class="ds-content-sub">Swipe · mutual opt-in only · no server data</div></div></div>
+    <div class="match-filters"><div class="mfilter on">Nearby</div><div class="mfilter">18–25</div><div class="mfilter">26–35</div><div class="mfilter">36–45</div><div class="mfilter">Tops</div><div class="mfilter">Bottoms</div><div class="mfilter">Vers</div><div class="mfilter">Relationship</div></div>
+    <div class="swipe-arena" id="sarena-d">
+      <div class="match-flash" id="mflash-d"><div style="font-size:42px">🎉</div><div class="match-flash-title">IT'S A MATCH</div><div class="match-flash-sub" id="msub-d"></div><button class="btn-send-msg" onclick="openChatD(null,'match');hideFlash('mflash-d')">Send a message</button><button class="btn-keep-swiping" onclick="hideFlash('mflash-d')">Keep swiping</button></div>
+    </div>
+    <div class="swipe-actions"><button class="action-btn btn-nope" onclick="doSwipe('d','left')">✕</button><button class="action-btn btn-like" onclick="doSwipe('d','right')">♥</button><button class="action-btn btn-star" onclick="doSwipe('d','super')">★</button></div>
+  </div>
+
+  <div class="view" id="view-setup">
+    <div class="setup-hdr"><div class="setup-step">Profile</div><div class="setup-title">Your profile · bunk.gay</div></div>
+    <div class="setup-body">
+      <div class="avatar-pick" onclick="document.getElementById('av-d').click()"><div class="avatar-ring"><img id="avimg-d" src="" alt=""><span id="avph-d">📷</span></div><div class="avatar-lbl">click to add photo</div></div>
+      <input type="file" id="av-d" style="display:none" accept="image/*" onchange="previewAv(this,'avimg-d','avph-d')">
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
+        <div class="fld"><label class="fld-lbl">Age</label><input class="fld-in" type="number" placeholder="28" min="18"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
+        <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option></select></div>
+      </div>
+      <div class="fld"><label class="fld-lbl">About you</label><input class="fld-in" type="text" placeholder="Dog dad. Coffee addict."></div>
+      <div class="fld"><label class="fld-lbl">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Side</option></select></div>
+      <div class="fld"><label class="fld-lbl">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">Hookups</div><div class="tag" onclick="toggleTag(this)">Relationship</div></div></div>
+      <button class="btn-cta" onclick="setViewD('cruise');setNavD('cruise')">Save &amp; cruise · bunk.gay</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-msgs">
+    <div class="ds-content-hdr">
+      <div><div class="ds-content-title">💬 Messages</div><div class="ds-content-sub">All conversations · P2P encrypted</div></div>
+    </div>
+    <div class="inbox-filter" style="padding:10px 22px">
+      <div class="inbox-chip on-all" id="inbox-chip-all-d" onclick="filterInboxD('all')">All</div>
+      <div class="inbox-chip" id="inbox-chip-cruise-d" onclick="filterInboxD('cruise')">🔥 Cruise</div>
+      <div class="inbox-chip" id="inbox-chip-match-d" onclick="filterInboxD('match')">✨ Match</div>
+    </div>
+    <div class="inbox-list" id="inbox-list-d"></div>
+  </div>
+
+  <div class="view" id="view-chat">
+    <div class="chat-hdr" style="padding-top:13px">
+      <div class="hero-back" style="position:static;width:29px;height:29px;font-size:13px;flex-shrink:0" onclick="setViewD('msgs')">←</div>
+      <div class="chat-av" id="cav-d"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="chat-av-name" id="cname-d"></div>
+          <span class="chat-source-badge" id="csrc-badge-d"></span>
+        </div>
+        <div class="chat-av-status">● P2P connected · encrypted</div>
+      </div>
+      <div class="icon-btn">⋯</div>
+    </div>
+    <div class="e2e-bar">🔒 E2E encrypted · <span>zero messages stored · bunk.gay</span></div>
+    <div class="chat-msgs" id="cmsgs-d"></div>
+    <div class="chat-input-bar"><textarea class="chat-in" id="cin-d" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('d')}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea><button class="send-btn" onclick="sendMsg('d')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+  </div>
+
+</div>
+
+<div class="ds-detail open" id="ds-detail">
+  <div id="det-welcome" class="detail-welcome">
+    <div class="detail-welcome-logo">BUNK</div>
+    <div class="detail-welcome-url">bunk.gay</div>
+    <div class="detail-welcome-sub">Tap any dot on the map or card in the grid to peek a profile.</div>
+    <div class="detail-enc">🔒 &nbsp;All connections E2E encrypted · zero server storage</div>
+  </div>
+  <div class="ds-profile-view" id="det-profile" style="display:none">
+    <div class="profile-hero" id="phero-d" style="min-height:42vh"><div class="hero-grad"></div><div class="hero-back" onclick="showDetWelcome()">←</div></div>
+    <div class="pd-scroll">
+      <div class="pd-body" style="padding-bottom:100px">
+        <div class="pd-name" id="pname-d"></div><div class="pd-meta" id="pmeta-d"></div>
+        <div class="pd-tags" id="ptags-d"></div>
+        <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-d"></div></div>
+        <div class="pd-section"><div class="pd-section-lbl">Peer connection</div>
+          <div class="peer-box"><div class="peer-row"><span class="peer-k">Protocol</span><span class="peer-v">WebRTC P2P</span></div><div class="peer-row"><span class="peer-k">Encryption</span><span class="peer-v">E2E · AES-256-GCM</span></div><div class="peer-row"><span class="peer-k">Peer ID</span><span class="peer-v" id="ppeer-d"></span></div><div class="peer-row"><span class="peer-k">Latency</span><span class="peer-v" id="plat-d"></span></div><div class="peer-row"><span class="peer-k">Server storage</span><span class="peer-v" style="color:var(--cruise)">None · bunk.gay</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pd-actions" style="position:absolute"><button class="pd-btn pd-btn-wave">👋 Wave</button><button class="pd-btn pd-btn-msg" onclick="openChatD(curD,'cruise')">Message</button></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const profiles=[
+  {id:'p1',name:'Marco',age:29,body:'Athletic',height:"6'0\"",dist:'0.3 km',bio:'Freelance designer, dog parent, espresso snob. Looking for something real — or at least interesting.',tags:['Dates','Friends'],into:['Jocks','Daddies'],pos:'Versatile',emoji:'🧑',bg:'bg1',online:true},
+  {id:'p2',name:'Tyler',age:34,body:'Muscular',height:"5'11\"",dist:'0.7 km',bio:'PT by day, terrible cook by night. Bear-adjacent. Very pro-nap.',tags:['Hookups','Chat'],into:['Bears','Kink'],pos:'Top',emoji:'🧔',bg:'bg2',online:true},
+  {id:'p3',name:'Seb',age:26,body:'Slim',height:"5'9\"",dist:'1.1 km',bio:'PhD in urban planning. Overthink everything, including this bio.',tags:['Friends','Dates'],into:['Twinks','Vanilla'],pos:'Bottom',emoji:'👦',bg:'bg3',online:false},
+  {id:'p4',name:'Renaud',age:31,body:'Average',height:"6'1\"",dist:'1.4 km',bio:'French. Architecture. Good red wine. Bad at texting back.',tags:['Dates','Chat'],into:['Daddies'],pos:'Versatile',emoji:'🧑‍🦱',bg:'bg4',online:true},
+  {id:'p5',name:'Kwame',age:28,body:'Athletic',height:"6'2\"",dist:'2.0 km',bio:'Photographer. Night owl. Here for genuine connection first.',tags:['Friends','Relationship'],into:['Jocks','Bears'],pos:'Top',emoji:'🧑‍🦲',bg:'bg5',online:true},
+  {id:'p6',name:'Luca',age:23,body:'Slim',height:"5'8\"",dist:'2.3 km',bio:'Art student, part-time barista, full-time chaos gremlin. Mostly harmless.',tags:['Chat','Hookups'],into:['Twinks','Leather'],pos:'Bottom',emoji:'🧒',bg:'bg6',online:false},
+  {id:'p7',name:'Diego',age:37,body:'Stocky',height:"5'10\"",dist:'2.8 km',bio:"Chef. Tattooed. Reads actual books. Swipe right if you like food arguments.",tags:['Dates','Relationship'],into:['Bears','Daddies'],pos:'Side',emoji:'👨',bg:'bg7',online:true},
+  {id:'p8',name:'Noah',age:24,body:'Athletic',height:"6'1\"",dist:'3.1 km',bio:'Tech bro by accident, artist by choice. Looking for something that surprises me.',tags:['Chat','Dates'],into:['Jocks','Vanilla'],pos:'Versatile',emoji:'🧑‍🦰',bg:'bg8',online:true},
+];
+const replies=['haha yeah 😄',"okay now I'm curious 👀",'same tbh','lol yes exactly','tell me more','oof relatable','wait seriously?',"that's kinda hot ngl",'love that for you'];
+let curM=null,curD=null,sidxM=0,sidxD=0;
+let mapM=null,mapD=null;
+let cruiseViewM='map',cruiseViewD='map';
+
+const rh=n=>[...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
+function toggleTag(el){el.classList.toggle('on')}
+function previewAv(inp,imgId,phId){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{const i=document.getElementById(imgId);i.src=e.target.result;i.style.display='block';document.getElementById(phId).style.display='none';};r.readAsDataURL(inp.files[0])}
+
+// ── MAP ──
+// Toronto as default centre, fuzzy offsets for peer dots
+const BASE_LAT=43.6532, BASE_LNG=-79.3832;
+function fuzz(base,range){return base+(Math.random()-0.5)*range}
+
+function peerMarkerHTML(p){
+  return `<div class="peer-marker-wrap"><div class="peer-marker-ring"></div><div class="peer-marker-ring2"></div><div class="peer-marker-dot ${p.online?'online':''}">${p.emoji}</div></div>`;
+}
+
+function meMarkerHTML(){
+  return `<div style="position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center"><div class="me-ring"></div><div class="me-marker-dot"></div></div>`;
+}
+
+function popupHTML(p){
+  return `<div class="map-popup">
+    <div class="mp-header">
+      <div class="mp-av">${p.emoji}</div>
+      <div><div class="mp-name">${p.name}, ${p.age}</div><div class="mp-meta">${p.dist} · ${p.body} · ${p.pos}</div></div>
+    </div>
+    <div class="mp-bio">${p.bio}</div>
+    <div class="mp-tags">${[...p.tags,...p.into].slice(0,5).map(t=>`<span class="mp-tag">${t}</span>`).join('')}</div>
+    <div class="mp-actions">
+      <button class="mp-btn mp-btn-wave">👋 Wave</button>
+      <button class="mp-btn mp-btn-msg" onclick="openProfileFromMap('${p.id}')">Profile →</button>
+    </div>
+    <div class="mp-enc">🔒 P2P encrypted · peer ID ${rh(6)}</div>
+  </div>`;
+}
+
+function initMap(containerId, suffix){
+  // Try geolocation, fall back to Toronto
+  const createMap=(lat,lng)=>{
+    const map=L.map(containerId,{
+      center:[lat,lng],zoom:15,
+      zoomControl:true,
+      attributionControl:false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+    // Me marker
+    const meIcon=L.divIcon({className:'',html:meMarkerHTML(),iconSize:[34,34],iconAnchor:[17,17]});
+    L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map).bindTooltip('You',{permanent:false,direction:'top',className:'',offset:[0,-20]});
+
+    // Peer markers — fuzzy offset within ~400m
+    profiles.forEach(p=>{
+      const plat=fuzz(lat,0.004);
+      const plng=fuzz(lng,0.005);
+      const icon=L.divIcon({className:'',html:peerMarkerHTML(p),iconSize:[48,48],iconAnchor:[24,24]});
+      const marker=L.marker([plat,plng],{icon}).addTo(map);
+      marker.bindPopup(popupHTML(p),{maxWidth:240,minWidth:220,className:''});
+      marker.on('click',()=>{
+        // on mobile also track curM
+        if(suffix==='m'){curM=p;}else{curD=p;}
+      });
+    });
+
+    if(suffix==='m'){mapM=map;}else{mapD=map;}
+
+    // Update count
+    const ct=12+Math.floor(Math.random()*8);
+    const el=document.getElementById('map-count-'+suffix);
+    if(el)el.textContent=ct;
+    const pct=document.getElementById('pct-'+suffix);
+    if(pct)pct.textContent=ct+' nearby';
+  };
+
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>createMap(pos.coords.latitude,pos.coords.longitude),
+      ()=>createMap(BASE_LAT,BASE_LNG),
+      {timeout:4000}
+    );
+  } else {
+    createMap(BASE_LAT,BASE_LNG);
+  }
+}
+
+function openProfileFromMap(id){
+  const p=profiles.find(x=>x.id===id);if(!p)return;
+  if(window.innerWidth<768){curM=p;fillProfile(p,'m');showScreenM('screen-profile-m');}
+  else{curD=p;fillProfile(p,'d');document.getElementById('det-welcome').style.display='none';document.getElementById('det-profile').style.display='flex';}
+}
+
+// ── CRUISE VIEW TOGGLE ──
+function toggleCruiseViewM(){
+  cruiseViewM = cruiseViewM==='map'?'grid':'map';
+  document.getElementById('m-cruise-map').style.display=cruiseViewM==='map'?'flex':'none';
+  document.getElementById('m-cruise-grid').style.display=cruiseViewM==='grid'?'flex':'none';
+  const btn=document.getElementById('view-toggle-m');
+  btn.textContent=cruiseViewM==='map'?'🗺️':'⊞';
+  btn.classList.toggle('active-view',cruiseViewM==='grid');
+  if(cruiseViewM==='map'&&mapM){setTimeout(()=>mapM.invalidateSize(),50);}
+  else{renderCruise('cgrid-m');}
+}
+function setCruiseViewD(view){
+  cruiseViewD=view;
+  document.getElementById('d-cruise-map').style.display=view==='map'?'flex':'none';
+  document.getElementById('d-cruise-grid').style.display=view==='grid'?'flex':'none';
+  document.getElementById('cvt-map-d').classList.toggle('on',view==='map');
+  document.getElementById('cvt-grid-d').classList.toggle('on',view==='grid');
+  if(view==='map'&&mapD){setTimeout(()=>mapD.invalidateSize(),50);}
+  else if(view==='grid'){renderCruise('cgrid-d');}
+}
+
+// ── CARDS ──
+function cardHTML(p,i){return`<div class="cruise-card" onclick="openProfile('${p.id}')" style="animation-delay:${i*.04}s"><div class="cc-photo ${p.bg}">${p.emoji}</div><div class="cc-grad"></div>${p.online?'<div class="online-dot"></div>':''}<div class="p2p-tag">P2P</div><div class="cc-info"><div class="cc-name">${p.name}, ${p.age}</div><div class="cc-meta">${p.dist} · ${p.pos}</div><div class="cc-tags"><span class="cc-tag cc-tag-o">${p.tags[0]||''}</span><span class="cc-tag cc-tag-t">${p.tags[1]||''}</span><span class="cc-tag cc-tag-g">${p.body}</span></div></div></div>`}
+function renderCruise(gid){document.getElementById(gid).innerHTML=profiles.map((p,i)=>cardHTML(p,i)).join('')}
+
+// ── PROFILE ──
+function openProfile(id){
+  const p=profiles.find(x=>x.id===id);if(!p)return;
+  if(window.innerWidth<768){curM=p;fillProfile(p,'m');showScreenM('screen-profile-m');}
+  else{curD=p;fillProfile(p,'d');document.getElementById('det-welcome').style.display='none';document.getElementById('det-profile').style.display='flex';}
+}
+function fillProfile(p,s){
+  const hero=document.getElementById('phero-'+s);
+  hero.className='profile-hero '+p.bg;
+  const g=document.createElement('div');g.className='hero-grad';
+  const b=document.createElement('div');b.className='hero-back';b.textContent='←';
+  b.onclick=s==='m'?()=>showScreenM('screen-main-m'):()=>showDetWelcome();
+  const em=document.createElement('span');em.style.cssText='font-size:80px;position:relative;z-index:1';em.textContent=p.emoji;
+  hero.innerHTML='';hero.append(g,b,em);
+  document.getElementById('pname-'+s).textContent=`${p.name}, ${p.age}`;
+  document.getElementById('pmeta-'+s).textContent=`${p.body} · ${p.height} · ${p.pos} · ${p.dist} away`;
+  document.getElementById('pbio-'+s).textContent=p.bio;
+  document.getElementById('ppeer-'+s).textContent=rh(8);
+  document.getElementById('plat-'+s).textContent=(12+Math.floor(Math.random()*40))+'ms';
+  document.getElementById('ptags-'+s).innerHTML=[...p.tags,...p.into].map(t=>`<span class="pd-tag">${t}</span>`).join('');
+}
+function showDetWelcome(){document.getElementById('det-welcome').style.display='flex';document.getElementById('det-profile').style.display='none'}
+
+// ── MOBILE SCREENS ──
+function showScreenM(id){document.querySelectorAll('#app-mobile .screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function goSetupM(){showScreenM('screen-setup-m')}
+function goMainM(){
+  showScreenM('screen-main-m');
+  renderCruise('cgrid-m');
+  buildStack('sarena-m','m');
+  animPct('pct-m');
+  renderInbox('inbox-list-m','all');
+  setTimeout(()=>initMap('bunk-map','m'),200);
+}
+function setModeM(m){
+  document.getElementById('m-cruise').style.display=m==='cruise'?'flex':'none';
+  document.getElementById('m-match').style.display=m==='match'?'flex':'none';
+  document.getElementById('mbtn-cruise').className='mode-btn'+(m==='cruise'?' active-cruise':'');
+  document.getElementById('mbtn-match').className='mode-btn'+(m==='match'?' active-match':'');
+  const d=document.getElementById('pdot-m');d.style.background=m==='cruise'?'var(--cruise)':'var(--match)';d.style.boxShadow=`0 0 6px ${m==='cruise'?'var(--cruise)':'var(--match)'}`;
+  // show map view toggle only in cruise
+  document.getElementById('view-toggle-m').style.display=m==='cruise'?'flex':'none';
+  if(m==='cruise'&&mapM)setTimeout(()=>mapM.invalidateSize(),100);
+}
+function setNavM(a){['cruise','match','msgs','profile'].forEach(id=>{const e=document.getElementById('mnav-'+id);if(e)e.className='nav-item';});const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',profile:'on-neutral'};if(map[a])document.getElementById('mnav-'+a).classList.add(map[a])}
+
+// ── DESKTOP VIEWS ──
+function setViewD(v){document.querySelectorAll('#shell-desktop .view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');if(v==='cruise'&&mapD)setTimeout(()=>mapD.invalidateSize(),100)}
+function setModeD(m){setViewD(m==='cruise'?'cruise':'match');document.getElementById('dbtn-cruise').className='ds-mode-btn'+(m==='cruise'?' active-cruise':'');document.getElementById('dbtn-match').className='ds-mode-btn'+(m==='match'?' active-match':'');const d=document.getElementById('pdot-d');d.style.background=m==='cruise'?'var(--cruise)':'var(--match)';d.style.boxShadow=`0 0 6px ${m==='cruise'?'var(--cruise)':'var(--match)'}`}
+function setNavD(a){['cruise','match','msgs','profile'].forEach(id=>{const e=document.getElementById('dnav-'+id);if(e)e.className='ds-nav-item';});const map={cruise:'on-cruise',match:'on-match',msgs:'on-neutral',profile:'on-neutral'};if(map[a])document.getElementById('dnav-'+a).classList.add(map[a])}
+
+// ── PEER COUNT ──
+function animPct(eid){let c=0,t=12+Math.floor(Math.random()*10);const e=document.getElementById(eid);const iv=setInterval(()=>{c++;if(e)e.textContent=c+' nearby';if(c>=t)clearInterval(iv);},55)}
+
+// ── SWIPE ──
+function buildStack(aid,s){
+  const arena=document.getElementById(aid);arena.querySelectorAll('.swipe-card').forEach(c=>c.remove());
+  profiles.slice(0,3).slice().reverse().forEach((p,ri)=>{const c=makeCard(p,2-ri);arena.insertBefore(c,arena.firstChild);});
+  const top=arena.querySelector('.swipe-card.is-top');if(top)initDrag(top,aid,s);
+}
+function makeCard(p,pos){
+  const d=document.createElement('div');d.className='swipe-card '+['is-top','is-mid','is-bot'][pos];d.dataset.id=p.id;
+  d.innerHTML=`<div class="sc-photo ${p.bg}">${p.emoji}<div class="sc-grad"></div></div><div class="stamp stamp-yes">BUNK</div><div class="stamp stamp-nope">NOPE</div><div class="sc-body"><div class="sc-name-row"><div class="sc-name">${p.name}</div><div class="sc-age">${p.age}</div></div><div class="sc-meta">${p.dist} · ${p.body} · ${p.height} · ${p.pos}</div><div class="sc-bio">${p.bio}</div><div class="sc-tags">${[...p.tags,...p.into].map(t=>`<span class="sc-tag">${t}</span>`).join('')}</div></div>`;
+  return d;
+}
+function initDrag(card,aid,s){
+  let sx,sy,cx=0,cy=0,dr=false;
+  const onS=e=>{dr=true;const pt=e.touches?e.touches[0]:e;sx=pt.clientX;sy=pt.clientY;card.style.transition='none'};
+  const onM=e=>{if(!dr)return;e.preventDefault();const pt=e.touches?e.touches[0]:e;cx=pt.clientX-sx;cy=pt.clientY-sy;card.style.transform=`translate(${cx}px,${cy}px) rotate(${cx*.08}deg)`;const y=card.querySelector('.stamp-yes'),n=card.querySelector('.stamp-nope');if(cx>40){y.style.opacity=Math.min((cx-40)/60,1);n.style.opacity=0}else if(cx<-40){n.style.opacity=Math.min((-cx-40)/60,1);y.style.opacity=0}else{y.style.opacity=0;n.style.opacity=0}};
+  const onE=()=>{if(!dr)return;dr=false;card.style.transition='transform .35s cubic-bezier(.4,0,.2,1),opacity .35s';if(Math.abs(cx)>100){flyOut(card,cx>0?'right':'left',aid,s);cx=0;cy=0}else{card.style.transform='';card.querySelector('.stamp-yes').style.opacity=0;card.querySelector('.stamp-nope').style.opacity=0;cx=0;cy=0}};
+  card.addEventListener('mousedown',onS);card.addEventListener('touchstart',onS,{passive:false});
+  document.addEventListener('mousemove',onM);document.addEventListener('touchmove',onM,{passive:false});
+  document.addEventListener('mouseup',onE);document.addEventListener('touchend',onE);
+}
+function flyOut(card,dir,aid,s){
+  card.style.transform=`translate(${dir==='right'?600:-600}px,-60px) rotate(${dir==='right'?30:-30}deg)`;card.style.opacity='0';
+  setTimeout(()=>{card.remove();promoteStack(aid,s);if(dir==='right'&&Math.random()>.55)showFlash(card.dataset.id,s);},350);
+}
+function doSwipe(s,dir){
+  const top=document.querySelector(`#sarena-${s} .swipe-card.is-top`);if(!top)return;
+  if(dir==='super'){top.style.transition='transform .4s ease,opacity .4s';top.style.transform='translateY(-500px) scale(1.1)';top.style.opacity='0';setTimeout(()=>{top.remove();promoteStack('sarena-'+s,s);showFlash(top.dataset.id,s);},400)}
+  else flyOut(top,dir==='right'?'right':'left','sarena-'+s,s);
+}
+function promoteStack(aid,s){
+  const cards=document.querySelectorAll(`#${aid} .swipe-card`);
+  cards.forEach((c,i)=>{c.className='swipe-card '+['is-top','is-mid','is-bot'][i]});
+  if(cards.length>0){cards[0].style.transition='transform .3s ease';initDrag(cards[0],aid,s)}
+  const idx=s==='m'?(sidxM=(sidxM+1)%profiles.length):(sidxD=(sidxD+1)%profiles.length);
+  if(cards.length<3){const arena=document.getElementById(aid);arena.appendChild(makeCard(profiles[idx],cards.length))}
+}
+function showFlash(pid,s){const p=profiles.find(x=>x.id===pid)||profiles[0];document.getElementById('msub-'+s).textContent=`You and ${p.name} both swiped right`;document.getElementById('mflash-'+s).classList.add('show')}
+function hideFlash(id){document.getElementById(id).classList.remove('show')}
+
+// ── INBOX DATA ──
+// seed conversations: mix of cruise and match sources
+const conversations = [
+  {id:'c1',profileId:'p1',source:'cruise',lastMsg:'Hey! Saw you on Bunk 👋',time:'2m',unread:true},
+  {id:'c2',profileId:'p5',source:'match',lastMsg:"It's a match! Say something 😊",time:'14m',unread:true},
+  {id:'c3',profileId:'p2',source:'cruise',lastMsg:'haha yeah 😄',time:'1h',unread:false},
+  {id:'c4',profileId:'p7',source:'match',lastMsg:'same tbh',time:'3h',unread:false},
+  {id:'c5',profileId:'p4',source:'cruise',lastMsg:'lol yes exactly',time:'5h',unread:false},
+  {id:'c6',profileId:'p8',source:'match',lastMsg:'tell me more',time:'1d',unread:false},
+];
+let inboxFilterM='all', inboxFilterD='all';
+let activeChatSource='cruise'; // track for bubble coloring
+
+function threadHTML(conv){
+  const p=profiles.find(x=>x.id===conv.profileId);if(!p)return'';
+  const isCruise=conv.source==='cruise';
+  const srcClass=isCruise?'cruise':'match';
+  const srcIcon=isCruise?'🔥':'✨';
+  return `<div class="inbox-thread" onclick="openConvFromInbox('${conv.id}')">
+    <div class="inbox-av-wrap">
+      <div class="inbox-av ${srcClass}-av">${p.emoji}</div>
+      <div class="inbox-source-badge ${srcClass}-badge">${srcIcon}</div>
+    </div>
+    <div class="inbox-body">
+      <div class="inbox-name-row">
+        <span class="inbox-name">${p.name}</span>
+        <span class="inbox-time">${conv.time}</span>
+      </div>
+      <div class="inbox-preview ${conv.unread?'unread':''}">${conv.lastMsg}</div>
+      <div class="inbox-source-label ${srcClass}-label">${isCruise?'🔥 Cruise':'✨ Match'} · ${p.dist} away</div>
+    </div>
+    ${conv.unread?`<div class="inbox-unread-dot ${srcClass}-dot"></div>`:''}
+  </div>`;
+}
+
+function renderInbox(listId, filter){
+  const el=document.getElementById(listId);if(!el)return;
+  const convs=conversations.filter(c=>filter==='all'||c.source===filter);
+  if(convs.length===0){el.innerHTML='<div class="inbox-empty">🔒<br>No messages yet.<br>Start a conversation from Cruise or Match.</div>';return;}
+  el.innerHTML=convs.map(threadHTML).join('');
+}
+
+function filterInboxM(f){
+  inboxFilterM=f;
+  ['all','cruise','match'].forEach(x=>{
+    const el=document.getElementById('inbox-chip-'+x+'-m');
+    if(el)el.className='inbox-chip';
+  });
+  document.getElementById('inbox-chip-'+f+'-m').className='inbox-chip on-'+(f==='all'?'all':f);
+  renderInbox('inbox-list-m',f);
+}
+function filterInboxD(f){
+  inboxFilterD=f;
+  ['all','cruise','match'].forEach(x=>{
+    const el=document.getElementById('inbox-chip-'+x+'-d');
+    if(el)el.className='inbox-chip';
+  });
+  document.getElementById('inbox-chip-'+f+'-d').className='inbox-chip on-'+(f==='all'?'all':f);
+  renderInbox('inbox-list-d',f);
+}
+
+function openConvFromInbox(convId){
+  const conv=conversations.find(x=>x.id===convId);if(!conv)return;
+  const p=profiles.find(x=>x.id===conv.profileId);if(!p)return;
+  conv.unread=false;
+  if(window.innerWidth<768){openChatM(p,conv.source);}
+  else{openChatD(p,conv.source);}
+}
+
+function openInboxM(){
+  renderInbox('inbox-list-m',inboxFilterM);
+  showScreenM('screen-inbox-m');
+}
+
+// ── CHAT ──
+function setChatSourceBadge(badgeId, source){
+  const el=document.getElementById(badgeId);if(!el)return;
+  el.className='chat-source-badge '+(source==='cruise'?'cruise':'match');
+  el.textContent=source==='cruise'?'🔥 Cruise':'✨ Match';
+}
+
+function openChatM(p, source){
+  const pr=p||curM||profiles[0];
+  const src=source||(curM?'cruise':'cruise');
+  activeChatSource=src;
+  document.getElementById('cname-m').textContent=pr.name;
+  document.getElementById('cav-m').textContent=pr.emoji;
+  setChatSourceBadge('csrc-badge-m',src);
+  const firstBubbleCls=src==='match'?'msg them match-msg':'msg them';
+  document.getElementById('cmsgs-m').innerHTML=`<div class="${firstBubbleCls}"><div class="bubble">Hey! Saw you on Bunk 👋</div><div class="msg-t">just now</div></div>`;
+  showScreenM('screen-chat-m');
+}
+
+function openChatD(p, source){
+  const pr=p||curD||profiles[0];
+  const src=source||(curD?'cruise':'cruise');
+  activeChatSource=src;
+  document.getElementById('cname-d').textContent=pr.name;
+  document.getElementById('cav-d').textContent=pr.emoji;
+  setChatSourceBadge('csrc-badge-d',src);
+  const firstBubbleCls=src==='match'?'msg them match-msg':'msg them';
+  document.getElementById('cmsgs-d').innerHTML=`<div class="${firstBubbleCls}"><div class="bubble">Hey! Saw you on Bunk 👋</div><div class="msg-t">just now</div></div>`;
+  setViewD('chat');setNavD('msgs');
+}
+
+function sendMsg(s){
+  const inp=document.getElementById('cin-'+s),txt=inp.value.trim();if(!txt)return;
+  const msgs=document.getElementById('cmsgs-'+s);
+  const meCls='msg me'+(activeChatSource==='match'?' match-msg':'');
+  const d=document.createElement('div');d.className=meCls;
+  d.innerHTML=`<div class="bubble">${txt}</div><div class="msg-t">just now</div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;inp.value='';inp.style.height='auto';
+  setTimeout(()=>{
+    const replyCls='msg them'+(activeChatSource==='match'?' match-msg':'');
+    const r=document.createElement('div');r.className=replyCls;
+    r.innerHTML=`<div class="bubble">${replies[Math.floor(Math.random()*replies.length)]}</div><div class="msg-t">just now</div>`;
+    msgs.appendChild(r);msgs.scrollTop=msgs.scrollHeight;
+  },900+Math.random()*700);
+}
+
+// ── CHIP LISTENERS ──
+document.querySelectorAll('.filter-chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('on'));c.classList.add('on')}));
+document.querySelectorAll('.mfilter').forEach(f=>f.addEventListener('click',()=>{document.querySelectorAll('.mfilter').forEach(x=>x.classList.remove('on'));f.classList.add('on')}));
+
+// ── INIT ──
+setTimeout(()=>{
+  document.getElementById('screen-splash').classList.remove('active');
+  setTimeout(()=>document.getElementById('screen-onboard').classList.add('active'),100);
+},2400);
+
+// Desktop init
+renderCruise('cgrid-d');
+buildStack('sarena-d','d');
+animPct('pct-d');
+renderInbox('inbox-list-d','all');
+setTimeout(()=>{
+  initMap('bunk-map-d','d');
+  const n=12+Math.floor(Math.random()*10);
+  const e=document.getElementById('csub-d');if(e)e.textContent=`${n} peers nearby · live map · bunk.gay`;
+},300);
+</script>
+</body>
+</html>
