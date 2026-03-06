@@ -834,6 +834,17 @@ let curM=null,curD=null,sidxM=0,sidxD=0;
 let mapM=null,mapD=null;
 let cruiseViewM='map',cruiseViewD='map';
 
+// ── ALBUM STATE (declared here to avoid temporal dead zone) ──
+let myAlbums=[
+  {id:'a1',name:'Profile Pics',privacy:'public',expiry:'never',photos:['🧑','😎','🏋️','🌊'],count:4,created:'Jan 2025'},
+  {id:'a2',name:'Beach Trip',privacy:'public',expiry:'7d',photos:['🏖️','🌅','🍹','🚤'],count:12,created:'Aug 2024'},
+  {id:'a3',name:'Private',privacy:'private',expiry:'24h',photos:['🔒','📷','🖼️','✨'],count:6,created:'Feb 2025'},
+];
+let selectedPrivacy='public';
+let selectedExpiry='7d';
+let activeAlbumForShare=null;
+let activeShareSuffix='m';
+
 const rh=n=>[...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
 function toggleTag(el){el.classList.toggle('on')}
 function previewAv(inp,imgId,phId){if(!inp.files||!inp.files[0])return;const r=new FileReader();r.onload=e=>{const i=document.getElementById(imgId);i.src=e.target.result;i.style.display='block';document.getElementById(phId).style.display='none';};r.readAsDataURL(inp.files[0])}
@@ -1189,16 +1200,6 @@ setTimeout(()=>{
 // ── ALBUMS ──
 // ════════════════════════════════════════
 
-// seed albums
-let myAlbums=[
-  {id:'a1',name:'Profile Pics',privacy:'public',expiry:'never',photos:['🧑','😎','🏋️','🌊'],count:4,created:'Jan 2025'},
-  {id:'a2',name:'Beach Trip',privacy:'public',expiry:'7d',photos:['🏖️','🌅','🍹','🚤'],count:12,created:'Aug 2024'},
-  {id:'a3',name:'Private',privacy:'private',expiry:'24h',photos:['🔒','📷','🖼️','✨'],count:6,created:'Feb 2025'},
-];
-let selectedPrivacy='public';
-let selectedExpiry='7d';
-let activeAlbumForShare=null;
-
 function albumThumbHTML(album){
   const photos=album.photos.slice(0,4);
   if(photos.length===1)return`<div class="album-thumb single"><div class="album-thumb-cell">${photos[0]}</div></div>`;
@@ -1300,7 +1301,6 @@ function openSharePicker(suffix){
     </div>`).join('');
   document.getElementById('share-picker').classList.add('open');
 }
-let activeShareSuffix='m';
 
 function closeSharePicker(){
   document.getElementById('share-picker').classList.remove('open');
@@ -1459,6 +1459,7 @@ function simIncomingChatMsg(suffix, profile){
 // ── SIMULATE NEW INBOX MESSAGE ──
 function simInboxMessage(){
   const p=simProfiles[Math.floor(Math.random()*simProfiles.length)];
+  if(!p)return;
   const msg=p.msgs[Math.floor(Math.random()*p.msgs.length)];
   // add to conversations
   const newConv={
@@ -1556,7 +1557,9 @@ function simAddMapPeer(mapObj, suffix){
 
 // ── SIMULATE MATCH NOTIFICATION ──
 function simMatchToast(){
-  const p=simProfiles.filter(x=>x.source==='match')[Math.floor(Math.random()*4)];
+  const matchProfiles=simProfiles.filter(x=>x.source==='match');
+  const p=matchProfiles[Math.floor(Math.random()*matchProfiles.length)];
+  if(!p)return;
   showToast(p.emoji,'You matched with '+p.name,'You both swiped right ✨','match',()=>{
     const prof=profiles[Math.floor(Math.random()*profiles.length)];
     if(window.innerWidth<768){openChatM(prof,'match');}
@@ -1567,6 +1570,7 @@ function simMatchToast(){
 // ── SIMULATE WAVE ──
 function simWaveToast(){
   const p=simProfiles[Math.floor(Math.random()*simProfiles.length)];
+  if(!p)return;
   showToast(p.emoji,p.name+' waved at you','👋 Say something back','cruise',()=>{
     const prof=profiles[Math.floor(Math.random()*profiles.length)];
     if(window.innerWidth<768){openChatM(prof,'cruise');}
