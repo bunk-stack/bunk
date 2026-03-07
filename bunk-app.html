@@ -247,10 +247,14 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .cc-info{position:absolute;bottom:0;left:0;right:0;padding:9px 8px}
 .cc-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.5px}
 .cc-meta{font-size:9px;color:var(--muted2);margin-top:1px;font-family:'DM Mono',monospace}
+.cc-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.cc-tag{font-size:9px;padding:2px 6px;border-radius:20px;font-family:'DM Mono',monospace;letter-spacing:.02em;white-space:nowrap}
+.cc-tag-looking{background:rgba(0,212,170,.15);color:var(--match);border:1px solid rgba(0,212,170,.25)}
+.cc-tag-body{background:rgba(255,69,0,.12);color:var(--cruise);border:1px solid rgba(255,69,0,.2)}
 .online-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--cruise);border:2px solid var(--bg);box-shadow:0 0 6px var(--cruise)}
 
 /* ── STALL WALL ── */
-.wall-feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+.wall-feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0}
 .wall-post{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;position:relative;cursor:pointer;transition:transform .15s, border-color .15s;animation:cardIn .3s ease both}
 .wall-post:hover{border-color:var(--border2);transform:scale(1.01)}
 .wall-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -523,6 +527,34 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .share-camera-row:hover{border-color:var(--cruise) !important;background:rgba(255,69,0,.12) !important}
 .sp-divider{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;text-align:center;padding:10px 0 6px}
 .photo-bubble-img.real-photo{width:100%;max-width:220px;aspect-ratio:unset;height:auto;max-height:300px;object-fit:cover;display:block;font-size:unset}
+
+/* MOMENTS/STORIES */
+.moments-strip{display:flex;padding:12px 14px;overflow-x:auto;gap:10px;border-bottom:1px solid var(--border);background:var(--surface);scroll-behavior:smooth}
+.moments-scroll-wrap{display:flex;gap:10px}
+.moment-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0}
+.moment-ring-outer{position:relative;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.moment-ring-outer.moment-ring.unseen{border:2px solid var(--cruise);box-shadow:0 0 8px var(--cruise)}
+.moment-ring-outer.moment-ring.seen{border:2px solid var(--muted)}
+.moment-ring-outer:not(.moment-ring){background:var(--surface2);border:2px solid var(--border)}
+.moment-av{font-size:28px;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.moment-name{font-size:11px;color:var(--muted2);text-align:center;max-width:56px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.moment-add{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--cruise);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;font-weight:bold}
+#story-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9980;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+#story-overlay.open{opacity:1;pointer-events:all}
+.story-progress{position:absolute;top:0;left:0;height:2px;background:var(--cruise);width:50%;animation:storyProgress 5s linear}
+@keyframes storyProgress{from{width:0}to{width:100%}}
+.story-hdr{position:absolute;top:0;left:0;right:0;padding:16px;color:var(--text);display:flex;justify-content:space-between;align-items:center;z-index:1}
+.story-title{font-size:14px;font-weight:600}
+.story-time{font-size:11px;color:var(--muted2)}
+.story-close{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px}
+.story-content{font-size:120px;text-align:center}
+.story-views{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted2)}
+.browse-nav{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.4);color:var(--text);padding:4px 12px;border-radius:12px;font-size:11px;font-family:'DM Mono',monospace;opacity:0;transition:opacity .2s}
+.browse-chevron{position:absolute;bottom:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,69,0,.15);border:1px solid var(--cruise);color:var(--cruise);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:18px;z-index:50}
+.browse-chevron:hover{background:rgba(255,69,0,.25)}
+.browse-chevron-prev{left:12px}
+.browse-chevron-next{right:12px}
+
 </style>
 </head>
 <body>
@@ -560,7 +592,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 
 <div class="screen" id="screen-setup-m" style="overflow-y:auto;background:var(--bg)">
   <div class="setup-hdr" style="padding-top:calc(var(--safe-top) + 20px)">
-    <div><div class="setup-step">Profile setup</div><div class="setup-title">Who are you?</div></div>
+    <div><div class="setup-step" data-t="profileSetupNav">Profile setup</div><div class="setup-title" data-t="whoAreYou">Who are you?</div></div>
     <div class="icon-btn" onclick="showNavM('main')" style="border:none;font-size:18px">✕</div>
   </div>
   <div class="setup-body">
@@ -568,45 +600,43 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <input type="file" id="av-m" style="display:none">
     <input type="file" id="camera-roll-input" accept="image/*" style="display:none" onchange="sendCameraRollPhoto(event)">
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
-      <div class="fld"><label class="fld-lbl">Age</label><input class="fld-in" type="number" placeholder="28"></div>
+      <div class="fld"><label class="fld-lbl" data-t="nameLabel">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
+      <div class="fld"><label class="fld-lbl" data-t="ageLabel">Age</label><input class="fld-in" type="number" placeholder="28"></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
-      <div class="fld"><label class="fld-lbl">Weight</label><input class="fld-in" type="text" placeholder="165 lbs"></div>
+      <div class="fld"><label class="fld-lbl" data-t="heightLabel">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
+      <div class="fld"><label class="fld-lbl" data-t="weightLabel">Weight</label><input class="fld-in" type="text" placeholder="165 lbs"></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Body</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option><option>Large</option></select></div>
-      <div class="fld"><label class="fld-lbl">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option>Small</option><option>Average</option><option>Large</option><option>Extra Large</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="bodyLabel">Body</label><select class="fld-in"><option>—</option><option data-t="slim">Slim</option><option data-t="athletic">Athletic</option><option data-t="average">Average</option><option data-t="stocky">Stocky</option><option data-t="muscular">Muscular</option><option data-t="large">Large</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option data-t="small">Small</option><option>Average</option><option data-t="large">Large</option><option data-t="extraLarge">Extra Large</option></select></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Gender</label><select class="fld-in"><option>Man</option><option>Non-binary</option><option>Trans man</option><option>Trans woman</option><option>Prefer not to say</option></select></div>
-      <div class="fld"><label class="fld-lbl">Ethnicity</label>
+      <div class="fld"><label class="fld-lbl" data-t="genderLabel">Gender</label><select class="fld-in"><option data-t="man">Man</option><option data-t="nonbinary">Non-binary</option><option data-t="transMan">Trans man</option><option data-t="transWoman">Trans woman</option><option>Prefer not to say</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="ethnicityLabel">Ethnicity</label>
         <select class="fld-in">
           <option>Prefer not to say</option><option>Middle Eastern / North African</option><option>East Asian</option><option>South Asian</option><option>Southeast Asian</option><option>Hispanic / Latino / Latine</option><option>Black / African descent</option><option>Indigenous / Native</option><option>Pacific Islander</option><option>White</option><option>Mixed / Multiracial</option><option>Self-describe</option>
         </select>
       </div>
     </div>
     
-    <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--cruise);font-family:'DM Mono',monospace;padding:10px 0 5px;border-top:1px solid var(--border);margin-top:4px">Dating & Intimacy</div>
+    <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--cruise);font-family:'DM Mono',monospace;padding:10px 0 5px;border-top:1px solid var(--border);margin-top:4px" data-t="datingIntimacy">Dating & Intimacy</div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Status</label><select class="fld-in"><option>Single</option><option>Open Relationship</option><option>Poly</option><option>Dating</option><option>Married</option><option>Ask Me</option></select></div>
-      <div class="fld"><label class="fld-lbl">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Side</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="relStatusLabel">Status</label><select class="fld-in"><option data-t="single">Single</option><option data-t="openRelationship">Open Relationship</option><option data-t="poly">Poly</option><option data-t="dating">Dating</option><option data-t="married">Married</option><option data-t="askMe">Ask Me</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="positionLabel">Position</label><select class="fld-in"><option>Prefer not to say</option><option data-t="top">Top</option><option data-t="bottom">Bottom</option><option data-t="versatile">Versatile</option><option data-t="side">Side</option></select></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl">Safety Practices</label><select class="fld-in"><option>Ask Me</option><option>Bareback</option><option>Safe</option></select></div>
-      <div class="fld"><label class="fld-lbl">Prevention</label><select class="fld-in"><option>Ask Me</option><option>PrEP</option><option>PrEP + Doxy</option><option>None</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="safetyPracticesLabel">Safety Practices</label><select class="fld-in"><option>Ask Me</option><option data-t="bareback">Bareback</option><option data-t="safe">Safe</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="preventionLabel">Prevention</label><select class="fld-in"><option>Ask Me</option><option data-t="prep">PrEP</option><option data-t="prepPlusDoxy">PrEP + Doxy</option><option data-t="noMethod">None</option></select></div>
     </div>
 
-    <div class="fld" style="margin-top:10px"><label class="fld-lbl">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">No Strings</div><div class="tag" onclick="toggleTag(this)">FWB</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Relationship</div></div></div>
+    <div class="fld" style="margin-top:10px"><label class="fld-lbl" data-t="lookingForLabel">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)" data-t="chatTag">Chat</div><div class="tag" onclick="toggleTag(this)" data-t="friendsTag">Friends</div><div class="tag" onclick="toggleTag(this)" data-t="noStrings">No Strings</div><div class="tag" onclick="toggleTag(this)" data-t="fwb">FWB</div><div class="tag" onclick="toggleTag(this)" data-t="datesTag">Dates</div><div class="tag" onclick="toggleTag(this)" data-t="relationshipTag">Relationship</div></div></div>
     
-    <div class="setup-section-lbl" style="margin-top:16px">Blocked users</div>
-    <div id="blocked-list-m" class="blocked-list"><div class="blocked-empty">No blocked users</div></div>
+    <div class="setup-section-lbl" style="margin-top:16px" data-t="blockedUsersHeader">Blocked users</div>
+    <div id="blocked-list-m" class="blocked-list"><div class="blocked-empty" data-t="noBlocked">No blocked users</div></div>
+    <div id="blocked-list-d" class="blocked-list"></div>
     
-    <div class="setup-section-lbl" style="margin-top:16px">Blocked users</div>
-    <div id="blocked-list-d" class="blocked-list"><div class="blocked-empty">No blocked users</div></div>
-    
-    <button class="btn-cta" onclick="goMain()">Save Profile</button>
+    <button class="btn-cta" onclick="goMain()" data-t="saveProfile">Save Profile</button>
   </div>
 </div>
 
@@ -616,21 +646,22 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div class="peer-pill"><div class="peer-dot" id="pdot-m"></div><span id="pct-m">182 nearby</span></div>
   </div>
   <div class="mode-toggle">
-    <button class="mode-btn active-cruise" id="mbtn-cruise-m" onclick="setMode('m', 'cruise')">🔥 Cruise</button>
-    <button class="mode-btn" id="mbtn-match-m" onclick="setMode('m', 'match')">✨ Match</button>
+    <button class="mode-btn active-cruise" id="mbtn-cruise-m" onclick="setMode('m', 'cruise')">🔥 <span data-t="cruise">Cruise</span></button>
+    <button class="mode-btn" id="mbtn-match-m" onclick="setMode('m', 'match')">✨ <span data-t="matchmaker">Match</span></button>
   </div>
 
   <div id="m-cruise-m" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
     <div class="cruise-view-toggle">
-      <button class="cvt-btn on" id="cvt-map-m" onclick="setSubView('m', 'map')">🗺️ Map</button>
-      <button class="cvt-btn" id="cvt-grid-m" onclick="setSubView('m', 'grid')">⊞ Grid</button>
-      <button class="cvt-btn" id="cvt-wall-m" onclick="setSubView('m', 'wall')">✍️ Wall</button>
-      <button class="cvt-btn" onclick="openCruiseFilterModal()" style="flex:0 0 auto;width:auto;padding:7px 10px">⚙️ Filters</button>
+      <button class="cvt-btn on" id="cvt-map-m" onclick="setSubView('m', 'map')">🗺️ <span data-t="mapView">Map</span></button>
+      <button class="cvt-btn" id="cvt-grid-m" onclick="setSubView('m', 'grid')">⊞ <span data-t="gridView">Grid</span></button>
+      <button class="cvt-btn" id="cvt-wall-m" onclick="setSubView('m', 'wall')">✍️ <span data-t="wallView">Wall</span></button>
+      <button class="cvt-btn" onclick="openCruiseFilterModal()" style="flex:0 0 auto;width:auto;padding:7px 10px">⚙️ <span data-t="filtersBtn">Filters</span></button>
+      <button class="cvt-btn" onclick="openFavoritesModal()" style="flex:0 0 auto;width:auto;padding:7px 12px;font-size:15px" title="Favourites">⭐</button>
     </div>
     <div id="v-map-m" class="map-wrap">
       <div id="bunk-map-m" style="width:100%;height:100%"></div>
       <div class="map-count-badge"><span id="map-count-m">182</span> peers nearby</div>
-      <div class="map-loc-bar"><div class="map-loc-dot"></div>Location fuzzy · ±300m</div>
+      <div class="map-loc-bar"><div class="map-loc-dot"></div><span data-t="locationFuzzy">Location fuzzy · ±300m</span></div>
       <div class="map-vis-toggle is-visible" id="mapvis-toggle-m" onclick="toggleMapVis('m')" style="position:absolute;bottom:58px;right:12px;z-index:500;display:flex;align-items:center;gap:7px;padding:7px 13px;background:rgba(8,10,15,.88);border:1px solid var(--border2);border-radius:22px;backdrop-filter:blur(10px);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;">
         <div class="map-vis-dot" style="width:7px;height:7px;border-radius:50%;background:var(--cruise);box-shadow:0 0 6px var(--cruise)"></div><span id="mapvis-label-m">📍 Visible</span>
       </div>
@@ -638,10 +669,10 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div id="v-grid-m" style="display:none;flex:1;flex-direction:column;overflow:hidden">
       <div class="cruise-grid-wrap"><div class="cruise-grid" id="cgrid-m"></div></div>
     </div>
-    <div id="v-wall-m" style="display:none;flex:1;flex-direction:column">
+    <div id="v-wall-m" style="display:none;flex:1;flex-direction:column;overflow:hidden">
       <div class="wall-feed" id="wall-feed-m"></div>
       <div class="wall-compose">
-        <input type="text" class="wall-input" id="wall-in-m" placeholder="Write to Stall Wall...">
+        <input type="text" class="wall-input" id="wall-in-m" placeholder="Write to Stall Wall..." data-t="writeToWall">
         <button class="wall-btn" onclick="postWall('m')">Post</button>
       </div>
     </div>
@@ -676,7 +707,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" data-t="localEvents">Local Events</div>
     <div class="icon-btn" onclick="showNavM('main')" style="border:none;font-size:18px">✕</div>
   </div>
-  <div class="create-event-btn" onclick="if(isGuest){showBanner('👻','Guest','Create a profile to post events');goSetup('m');}else{document.getElementById('create-event-modal').classList.add('open');}">＋ Create Event</div>
+  <div class="create-event-btn" onclick="if(isGuest){showBanner('👻','Guest','Create a profile to post events');goSetup('m');}else{document.getElementById('create-event-modal').classList.add('open');}" data-t="createEvent">＋ Create Event</div>
   <div class="event-feed" id="event-feed-m" style="flex:1;overflow-y:auto;padding-bottom:80px"></div>
 </div>
 
@@ -686,12 +717,14 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace"><span data-t="messages">Messages</span></div>
     <div class="icon-btn" onclick="showNavM('main')" style="border:none;font-size:18px">✕</div>
   </div>
+  <div class="moments-strip" id="moments-strip"></div>
   <div class="inbox-filter">
-    <div class="inbox-chip on-all" onclick="filterInbox('m', 'all', this)">All</div>
-    <div class="inbox-chip" onclick="filterInbox('m', 'cruise', this)">🔥 Cruise</div>
-    <div class="inbox-chip" onclick="filterInbox('m', 'match', this)">✨ Match</div>
-    <div class="inbox-chip" onclick="filterInbox('m', 'group', this)">👥 Groups</div>
-    <div class="inbox-chip" onclick="filterInbox('m', 'event', this)">🎟 Events</div>
+    <div class="inbox-chip on-all" onclick="filterInbox('m', 'all', this)" data-t="all">All</div>
+    <div class="inbox-chip" onclick="filterInbox('m', 'cruise', this)">🔥 <span data-t="cruise">Cruise</span></div>
+    <div class="inbox-chip" onclick="filterInbox('m', 'match', this)">✨ <span data-t="matchmaker">Match</span></div>
+    <div class="inbox-chip" onclick="filterInbox('m', 'group', this)">👥 <span data-t="groupsFilter">Groups</span></div>
+    <div class="inbox-chip" onclick="filterInbox('m', 'event', this)">🎟 <span data-t="eventsFilter">Events</span></div>
+    <div class="inbox-chip" onclick="filterInbox('m', 'fav', this)">⭐ <span data-t="favourites">Favourites</span></div>
   </div>
   <div class="inbox-list" id="inbox-list-m"></div>
 </div>
@@ -708,7 +741,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   <div class="chat-msgs" id="cmsgs-m"></div>
   <div class="chat-input-bar">
     <div class="icon-btn" style="border-radius:50%;font-size:16px;flex-shrink:0" onclick="openSharePicker('m')">📸</div>
-    <textarea class="chat-in" id="cin-m" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('m')}"></textarea>
+    <textarea class="chat-in" id="cin-m" placeholder="Send a message…" data-placeholder="sendMsgPlaceholder" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('m')}"></textarea>
     <button class="send-btn" onclick="sendMsg('m')"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
 </div>
@@ -716,20 +749,23 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="screen" id="screen-albums-m" style="background:var(--bg)">
   <div class="topbar">
     <div class="topbar-logo">BUNK</div>
-    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">My Albums</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace" data-t="myAlbums">My Albums</div>
     <div class="icon-btn" onclick="showNavM('main')" style="border:none;font-size:18px">✕</div>
   </div>
   <div class="albums-grid" id="albums-grid-m"></div>
 </div>
 
 <div class="screen" id="screen-profile-m" style="background:var(--bg);overflow-y:auto">
-  <div class="profile-hero" id="phero-m"><div class="hero-grad"></div><div class="hero-back" onclick="showNavM('main')">←</div></div>
+  <div class="profile-hero" id="phero-m"><div class="hero-grad">
+  <div id="browse-nav-m" class="browse-nav"></div>
+  <button id="browse-prev-m" class="browse-chevron browse-chevron-prev" onclick="browsePrev('m')">‹</button>
+  <button id="browse-next-m" class="browse-chevron browse-chevron-next" onclick="browseNext('m')">›</button></div><div class="hero-back" onclick="showNavM('main')">←</div></div>
   <div class="pd-body">
     <div class="pd-name" id="pname-m"></div><div class="pd-meta" id="pmeta-m"></div>
     <div class="pd-tags" id="ptags-m"></div>
-    <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-m"></div></div>
+    <div class="pd-section"><div class="pd-section-lbl" data-t="about">About</div><div class="pd-bio" id="pbio-m"></div></div>
     <div class="pd-section">
-      <div class="pd-section-lbl">Intimacy & Health</div>
+      <div class="pd-section-lbl" data-t="intimacyHealth">Intimacy & Health</div>
       <div class="peer-box">
         <div class="peer-row"><span class="peer-k">Status</span><span class="peer-v" style="color:var(--text)" id="pstatus-m"></span></div>
         <div class="peer-row"><span class="peer-k">Safety</span><span class="peer-v" style="color:var(--text)" id="psafety-m"></span></div>
@@ -737,7 +773,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
       </div>
     </div>
   </div>
-  <div class="pd-actions"><button class="pd-btn pd-btn-fav" id="pd-fav-m" onclick="toggleFavorite(curM&&curM.id,'m');triggerHeartAnim(this)">🤍</button><button class="pd-btn pd-btn-msg" onclick="startChatWith(curM&&curM.id,'m')">Message</button><button class="pd-btn pd-btn-more" onclick="openActionSheet(curM&&curM.id)">⋯</button></div>
+  <div class="pd-actions"><button class="pd-btn pd-btn-fav" id="pd-fav-m" onclick="toggleFavorite(curM&&curM.id,'m');triggerHeartAnim(this)">🤍</button><button class="pd-btn pd-btn-msg" onclick="startChatWith(curM&&curM.id,'m')" data-t="message">Message</button><button class="pd-btn pd-btn-more" onclick="openActionSheet(curM&&curM.id)">⋯</button></div>
 </div>
 
 </div></div>
@@ -750,8 +786,8 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   <div class="ds-domain">bunk.gay · peer-to-peer</div>
   <div class="ds-peer"><div class="peer-dot"></div><span id="pct-d">182 nearby</span></div>
   <div class="ds-mode-toggle">
-    <button class="ds-mode-btn active-cruise" id="dbtn-cruise" onclick="setMode('d', 'cruise')">🔥 Cruise</button>
-    <button class="ds-mode-btn" id="dbtn-match" onclick="setMode('d', 'match')">✨ Matchmaker</button>
+    <button class="ds-mode-btn active-cruise" id="dbtn-cruise" onclick="setMode('d', 'cruise')">🔥 <span data-t="cruise">Cruise</span></button>
+    <button class="ds-mode-btn" id="dbtn-match" onclick="setMode('d', 'match')">✨ <span data-t="matchmaker">Matchmaker</span></button>
   </div>
   <div class="ds-nav">
     <div class="ds-nav-section">Discover</div>
@@ -770,14 +806,14 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="ds-main">
   <div class="view" id="view-setup-d">
     <div class="ds-content-hdr">
-      <div><div class="ds-content-title">Profile Setup</div></div>
+      <div><div class="ds-content-title" data-t="setup">Profile Setup</div></div>
       <button class="match-action-btn" onclick="showNavD('main')" style="width:auto;padding:6px 12px;margin:0">✕ Close</button>
     </div>
     <div class="setup-body" style="max-width:600px;margin:0 auto;width:100%">
       <div class="avatar-pick"><div class="avatar-ring">📷</div></div>
       <div class="fld-row">
-        <div class="fld"><label class="fld-lbl">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
-        <div class="fld"><label class="fld-lbl">Age</label><input class="fld-in" type="number" placeholder="28"></div>
+        <div class="fld"><label class="fld-lbl" data-t="nameLabel">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
+        <div class="fld"><label class="fld-lbl" data-t="ageLabel">Age</label><input class="fld-in" type="number" placeholder="28"></div>
       </div>
       <button class="btn-cta" onclick="showNavD('main')">Save Profile</button>
     </div>
@@ -786,12 +822,13 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   <div class="view active" id="view-main-d">
     <div id="m-cruise-d" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="ds-content-hdr">
-        <div><div class="ds-content-title">🔥 Cruise</div><div class="ds-content-sub" id="csub-d">Connecting to peers...</div></div>
+        <div><div class="ds-content-title">🔥 <span data-t="cruise">Cruise</span></div><div class="ds-content-sub" id="csub-d">Connecting to peers...</div></div>
         <div style="display:flex;gap:8px">
-          <button class="cvt-btn on" id="cvt-map-d" onclick="setSubView('d', 'map')" style="width:auto;padding:6px 12px">🗺️ Map</button>
-          <button class="cvt-btn" id="cvt-grid-d" onclick="setSubView('d', 'grid')" style="width:auto;padding:6px 12px">⊞ Grid</button>
-          <button class="cvt-btn" id="cvt-wall-d" onclick="setSubView('d', 'wall')" style="width:auto;padding:6px 12px">✍️ Wall</button>
-          <button class="cvt-btn" onclick="openCruiseFilterModal()" style="width:auto;padding:6px 12px">⚙️ Filters</button>
+          <button class="cvt-btn on" id="cvt-map-d" onclick="setSubView('d', 'map')" style="width:auto;padding:6px 12px">🗺️ <span data-t="mapView">Map</span></button>
+          <button class="cvt-btn" id="cvt-grid-d" onclick="setSubView('d', 'grid')" style="width:auto;padding:6px 12px">⊞ <span data-t="gridView">Grid</span></button>
+          <button class="cvt-btn" id="cvt-wall-d" onclick="setSubView('d', 'wall')" style="width:auto;padding:6px 12px">✍️ <span data-t="wallView">Wall</span></button>
+          <button class="cvt-btn" onclick="openCruiseFilterModal()" style="width:auto;padding:6px 12px">⚙️ <span data-t="filtersBtn">Filters</span></button>
+          <button class="cvt-btn" onclick="openFavoritesModal()" style="width:auto;padding:6px 14px;font-size:15px" title="Favourites">⭐</button>
         </div>
       </div>
       <div id="v-map-d" class="map-wrap">
@@ -804,17 +841,17 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
       <div id="v-grid-d" style="display:none;flex:1;flex-direction:column;overflow:hidden">
         <div class="cruise-grid-wrap"><div class="cruise-grid" id="cgrid-d"></div></div>
       </div>
-      <div id="v-wall-d" style="display:none;flex:1;flex-direction:column;max-width:600px;margin:0 auto;width:100%">
+      <div id="v-wall-d" style="display:none;flex:1;flex-direction:column;overflow:hidden;max-width:600px;margin:0 auto;width:100%">
         <div class="wall-feed" id="wall-feed-d"></div>
         <div class="wall-compose" style="margin-bottom:20px;border-radius:12px">
-          <input type="text" class="wall-input" id="wall-in-d" placeholder="Write to Stall Wall...">
+          <input type="text" class="wall-input" id="wall-in-d" placeholder="Write to Stall Wall..." data-t="writeToWall">
           <button class="wall-btn" onclick="postWall('d')">Post</button>
         </div>
       </div>
     </div>
     <div id="m-match-d" style="display:none;flex-direction:column;flex:1;overflow:hidden">
       <div class="ds-content-hdr">
-        <div><div class="ds-content-title">✨ Matchmaker</div><div class="ds-content-sub">Mutual opt-in dating</div></div>
+        <div><div class="ds-content-title">✨ <span data-t="matchmaker">Matchmaker</span></div><div class="ds-content-sub" data-t="mutualOptIn">Mutual opt-in dating</div></div>
         <div style="display:flex;gap:8px">
           <button class="match-action-btn" onclick="openMatchesModal()" style="width:auto;padding:6px 12px;margin:0">❤️ Matches</button>
           <button class="match-action-btn" onclick="openTypeModal()" style="width:auto;padding:6px 12px;margin:0">⚙️ My Type</button>
@@ -846,12 +883,14 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
       <div><div class="ds-content-title">💬 Messages</div></div>
       <button class="match-action-btn" onclick="showNavD('main')" style="width:auto;padding:6px 12px;margin:0">✕ Close</button>
     </div>
+    <div class="moments-strip" id="moments-strip-d"></div>
     <div class="inbox-filter" style="padding:10px 22px">
-      <div class="inbox-chip on-all" onclick="filterInbox('d', 'all', this)">All</div>
-      <div class="inbox-chip" onclick="filterInbox('d', 'cruise', this)">🔥 Cruise</div>
-      <div class="inbox-chip" onclick="filterInbox('d', 'match', this)">✨ Match</div>
-      <div class="inbox-chip" onclick="filterInbox('d', 'group', this)">👥 Groups</div>
-      <div class="inbox-chip" onclick="filterInbox('d', 'event', this)">🎟 Events</div>
+      <div class="inbox-chip on-all" onclick="filterInbox('d', 'all', this)" data-t="all">All</div>
+      <div class="inbox-chip" onclick="filterInbox('d', 'cruise', this)">🔥 <span data-t="cruise">Cruise</span></div>
+      <div class="inbox-chip" onclick="filterInbox('d', 'match', this)">✨ <span data-t="matchmaker">Match</span></div>
+      <div class="inbox-chip" onclick="filterInbox('d', 'group', this)">👥 <span data-t="groupsFilter">Groups</span></div>
+      <div class="inbox-chip" onclick="filterInbox('d', 'event', this)">🎟 <span data-t="eventsFilter">Events</span></div>
+      <div class="inbox-chip" onclick="filterInbox('d', 'fav', this)">⭐ <span data-t="favourites">Favourites</span></div>
     </div>
     <div class="inbox-list" id="inbox-list-d"></div>
   </div>
@@ -868,7 +907,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div class="chat-msgs" id="cmsgs-d"></div>
     <div class="chat-input-bar">
       <div class="icon-btn" style="border-radius:50%;font-size:16px;flex-shrink:0" onclick="openSharePicker('d')">📸</div>
-      <textarea class="chat-in" id="cin-d" placeholder="Send a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('d')}"></textarea>
+      <textarea class="chat-in" id="cin-d" placeholder="Send a message…" data-placeholder="sendMsgPlaceholder" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('d')}"></textarea>
       <button class="send-btn" onclick="sendMsg('d')"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
     </div>
   </div>
@@ -893,15 +932,18 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div class="detail-welcome-sub">Tap any dot on the map or card in the grid to peek a profile.</div>
   </div>
   <div class="ds-profile-view" id="det-profile" style="display:none">
-    <div class="profile-hero" id="phero-d" style="min-height:42vh"><div class="hero-grad"></div><div class="hero-back" onclick="showDetWelcome()">←</div></div>
+    <div class="profile-hero" id="phero-d" style="min-height:42vh"><div class="hero-grad">
+  <div id="browse-nav-d" class="browse-nav"></div>
+  <button id="browse-prev-d" class="browse-chevron browse-chevron-prev" onclick="browsePrev('d')">‹</button>
+  <button id="browse-next-d" class="browse-chevron browse-chevron-next" onclick="browseNext('d')">›</button></div><div class="hero-back" onclick="showDetWelcome()">←</div></div>
     <div class="pd-scroll">
       <div class="pd-body" style="padding-bottom:100px">
         <div class="pd-name" id="pname-d"></div><div class="pd-meta" id="pmeta-d"></div>
         <div class="pd-tags" id="ptags-d"></div>
-        <div class="pd-section"><div class="pd-section-lbl">About</div><div class="pd-bio" id="pbio-d"></div></div>
+        <div class="pd-section"><div class="pd-section-lbl" data-t="about">About</div><div class="pd-bio" id="pbio-d"></div></div>
         
         <div class="pd-section">
-          <div class="pd-section-lbl">Intimacy & Health</div>
+          <div class="pd-section-lbl" data-t="intimacyHealth">Intimacy & Health</div>
           <div class="peer-box">
             <div class="peer-row"><span class="peer-k">Status</span><span class="peer-v" style="color:var(--text)" id="pstatus-d"></span></div>
             <div class="peer-row"><span class="peer-k">Safety</span><span class="peer-v" style="color:var(--text)" id="psafety-d"></span></div>
@@ -974,8 +1016,8 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <input type="range" style="width:100%;margin-top:8px" min="1" max="100" value="5" oninput="document.getElementById('dist-lbl-type').textContent=this.value+' km'">
       </div>
       <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Age Range</label><input class="fld-in" type="text" placeholder="18 - 45"></div>
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Position</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Tops</div><div class="tag" onclick="toggleTag(this)">Bottoms</div><div class="tag" onclick="toggleTag(this)">Versatile</div><div class="tag" onclick="toggleTag(this)">Side</div></div></div>
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Endowment</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Small</div><div class="tag" onclick="toggleTag(this)">Average</div><div class="tag" onclick="toggleTag(this)">Large</div><div class="tag" onclick="toggleTag(this)">Extra Large</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="positionLabel">Position</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Tops</div><div class="tag" onclick="toggleTag(this)">Bottoms</div><div class="tag" onclick="toggleTag(this)">Versatile</div><div class="tag" onclick="toggleTag(this)">Side</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Small</div><div class="tag" onclick="toggleTag(this)">Average</div><div class="tag" onclick="toggleTag(this)">Large</div><div class="tag" onclick="toggleTag(this)">Extra Large</div></div></div>
       <div class="fld" style="margin-bottom:20px"><label class="fld-lbl">Relationship Status</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Single</div><div class="tag" onclick="toggleTag(this)">Open Relationship</div><div class="tag" onclick="toggleTag(this)">Poly</div><div class="tag" onclick="toggleTag(this)">Dating</div><div class="tag" onclick="toggleTag(this)">Married</div></div></div>
       <button class="btn-cta" onclick="closeTypeModal()">Save Preferences</button>
     </div>
@@ -987,10 +1029,10 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div class="as-handle"></div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px">Cruise Filters</div>
     <div class="modal-scroll">
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Looking For</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">No Strings</div><div class="tag" onclick="toggleTag(this)">FWB</div><div class="tag" onclick="toggleTag(this)">Dates</div></div></div>
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Position</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Top</div><div class="tag" onclick="toggleTag(this)">Bottom</div><div class="tag" onclick="toggleTag(this)">Versatile</div><div class="tag" onclick="toggleTag(this)">Side</div></div></div>
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Endowment</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Small</div><div class="tag" onclick="toggleTag(this)">Average</div><div class="tag" onclick="toggleTag(this)">Large</div><div class="tag" onclick="toggleTag(this)">Extra Large</div></div></div>
-      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Safety Practices</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Bareback</div><div class="tag" onclick="toggleTag(this)">Safe</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Looking For</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)" data-t="chatTag">Chat</div><div class="tag" onclick="toggleTag(this)" data-t="friendsTag">Friends</div><div class="tag" onclick="toggleTag(this)" data-t="noStrings">No Strings</div><div class="tag" onclick="toggleTag(this)" data-t="fwb">FWB</div><div class="tag" onclick="toggleTag(this)" data-t="datesTag">Dates</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="positionLabel">Position</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Top</div><div class="tag" onclick="toggleTag(this)">Bottom</div><div class="tag" onclick="toggleTag(this)">Versatile</div><div class="tag" onclick="toggleTag(this)">Side</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Small</div><div class="tag" onclick="toggleTag(this)">Average</div><div class="tag" onclick="toggleTag(this)">Large</div><div class="tag" onclick="toggleTag(this)">Extra Large</div></div></div>
+      <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="safetyPracticesLabel">Safety Practices</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Bareback</div><div class="tag" onclick="toggleTag(this)">Safe</div></div></div>
       <button class="btn-cta" onclick="applyCruiseFilters()">Apply Filters</button>
     </div>
   </div>
@@ -1300,7 +1342,7 @@ function popupHTML(p){
   return `<div class="map-popup">
     <div class="mp-header">
       <div class="mp-av">${p.emoji}</div>
-      <div><div class="mp-name">${p.name}, ${p.age}</div><div class="mp-meta">${p.dist} · ${p.body} · ${p.pos}</div></div>
+      <div><div class="mp-name">${p.name}, ${p.age}</div><div class="mp-meta">${p.dist} · ${tVal(p.body)} · ${tVal(p.pos)}</div></div>
     </div>
     <div class="mp-bio">${p.bio}</div>
     <div class="mp-actions">
@@ -1401,7 +1443,7 @@ function toggleFavorite(id, s) {
 
 function cardHTML(p, i){
   const fav=isFavorite(p.id);
-  return`<div class="cruise-card${fav?' is-fav':''}" onclick="openProfileFromMap('${p.id}')" style="animation-delay:${i*.05}s"><div class="cc-photo ${p.bg}">${p.emoji}</div><div class="cc-grad"></div>${p.online?'<div class="online-dot"></div>':''}<div class="p2p-tag">P2P</div><button class="cc-fav-btn${fav?' is-fav':''}" onclick="event.stopPropagation();const btn=this;triggerHeartAnim(btn);toggleFavorite('${p.id}',window.innerWidth<768?'m':'d')">${fav?'❤️':'🤍'}</button><div class="cc-info"><div class="cc-name">${p.name}, ${p.age}</div><div class="cc-meta">${p.dist} · ${p.pos}</div><div class="cc-tags"><span class="cc-tag cc-tag-o">${p.tags[0]||''}</span><span class="cc-tag cc-tag-t">${p.tags[1]||''}</span><span class="cc-tag cc-tag-g">${p.body}</span></div></div></div>`;
+  return`<div class="cruise-card${fav?' is-fav':''}" onclick="openProfileFromMap('${p.id}')" style="animation-delay:${i*.05}s"><div class="cc-photo ${p.bg}">${p.emoji}</div><div class="cc-grad"></div>${p.online?'<div class="online-dot"></div>':''}<div class="p2p-tag">P2P</div><button class="cc-fav-btn${fav?' is-fav':''}" onclick="event.stopPropagation();const btn=this;triggerHeartAnim(btn);toggleFavorite('${p.id}',window.innerWidth<768?'m':'d')">${fav?'❤️':'🤍'}</button><div class="cc-info"><div class="cc-name">${p.name}, ${p.age}</div><div class="cc-meta">${p.dist} · ${p.pos}</div><div class="cc-tags">${(p.tags||[]).slice(0,3).map(tag=>`<span class="cc-tag cc-tag-looking">${tVal(tag)}</span>`).join('')}<span class="cc-tag cc-tag-body">${tVal(p.body)}</span></div></div></div></div>`;
 }
 
 function renderCruise(gid){
@@ -1416,6 +1458,19 @@ function setCruiseFilter(chip, containerId) {
 }
 function openCruiseFilterModal() { document.getElementById('cruise-filter-modal').classList.add('open'); }
 function closeCruiseFilterModal() { document.getElementById('cruise-filter-modal').classList.remove('open'); }
+function openFavoritesModal() {
+  const modal = document.getElementById('favorites-modal');
+  if(!modal) return;
+  const list = modal.querySelector('.fav-modal-list');
+  const favProfiles = profiles.filter(p => favorites.includes(p.id));
+  if(favProfiles.length === 0) {
+    list.innerHTML = '<div class="blocked-empty">No favourites yet. Tap ❤️ on any profile.</div>';
+  } else {
+    list.innerHTML = favProfiles.map(p => `<div class="blocked-item" onclick="openProfileFromMap('${p.id}');closeFavoritesModal()"><div class="blocked-av">${p.emoji}</div><div class="blocked-name">${p.name}, ${p.age}</div><div style="color:var(--muted);font-size:11px">${p.dist}</div></div>`).join('');
+  }
+  modal.classList.add('open');
+}
+function closeFavoritesModal() { document.getElementById('favorites-modal').classList.remove('open'); }
 function applyCruiseFilters() {
   closeCruiseFilterModal();
   showBanner('⚙️', 'Filters Applied', 'Cruise grid has been updated.');
@@ -1426,12 +1481,12 @@ function applyCruiseFilters() {
 function _fillProfilePanel(p, s){
   const fav = isFavorite(p.id);
   document.getElementById('pname-'+s).textContent=`${p.name}, ${p.age}`;
-  document.getElementById('pmeta-'+s).textContent=[p.body,p.height,p.weight,p.endowment,p.pos,p.dist].filter(Boolean).join(' · ');
+  document.getElementById('pmeta-'+s).textContent=[tVal(p.body),p.height,p.weight,p.endowment,tVal(p.pos),p.dist].filter(Boolean).join(' · ');
   document.getElementById('pbio-'+s).textContent=p.bio;
-  const statusEl=document.getElementById('pstatus-'+s); if(statusEl) statusEl.textContent=`${p.status} · ${p.pos}`;
-  const safetyEl=document.getElementById('psafety-'+s); if(safetyEl) safetyEl.textContent=p.safety;
-  const prevEl=document.getElementById('pprev-'+s); if(prevEl) prevEl.textContent=p.prev;
-  document.getElementById('ptags-'+s).innerHTML=[...p.tags,...p.into].map(tag=>`<span class="pd-tag">${tag}</span>`).join('');
+  const statusEl=document.getElementById('pstatus-'+s); if(statusEl) statusEl.textContent=`${tVal(p.status)} · ${tVal(p.pos)}`;
+  const safetyEl=document.getElementById('psafety-'+s); if(safetyEl) safetyEl.textContent=tVal(p.safety);
+  const prevEl=document.getElementById('pprev-'+s); if(prevEl) prevEl.textContent=tVal(p.prev);
+  document.getElementById('ptags-'+s).innerHTML=[...p.tags,...p.into].map(tag=>`<span class="pd-tag">${tVal(tag)}</span>`).join('');
   document.getElementById('phero-'+s).className='profile-hero '+p.bg;
   const backFn = s==='m' ? "showNavM('main')" : "showDetWelcome()";
   document.getElementById('phero-'+s).innerHTML=`<div class="hero-grad"></div><div class="hero-back" onclick="${backFn}">←</div><span style="font-size:80px;position:relative;z-index:1">${p.emoji}</span>`;
@@ -1469,7 +1524,7 @@ function _makeCard(p,cls){
   const d=document.createElement('div');
   d.className='swipe-card '+cls;
   d.dataset.id=p.id;
-  d.innerHTML=`<div class="sc-photo ${p.bg}">${p.emoji}<div class="sc-grad"></div></div><div class="stamp stamp-yes">BUNK</div><div class="stamp stamp-nope">NOPE</div><div class="sc-body"><div class="sc-name-row"><div class="sc-name">${p.name}</div><div class="sc-age">${p.age}</div></div><div class="sc-meta">${p.dist} · ${p.body} · ${p.pos}</div><div class="sc-bio">${p.bio}</div></div>`;
+  d.innerHTML=`<div class="sc-photo ${p.bg}">${p.emoji}<div class="sc-grad"></div></div><div class="stamp stamp-yes">BUNK</div><div class="stamp stamp-nope">NOPE</div><div class="sc-body"><div class="sc-name-row"><div class="sc-name">${p.name}</div><div class="sc-age">${p.age}</div></div><div class="sc-meta">${p.dist} · ${tVal(p.body)} · ${tVal(p.pos)}</div><div class="sc-bio">${p.bio}</div></div>`;
   return d;
 }
 function _emptyState(arena,aid,s){
@@ -1627,7 +1682,7 @@ function getParticipantsNameString(participants) {
 function renderInbox(s, filter) {
   const list = document.getElementById(`inbox-list-${s}`);
   if(!list) return;
-  const filtered = conversations.filter(c => filter==='all' || c.type===filter);
+  const filtered = conversations.filter(c => { if(filter==='all') return true; if(filter==='fav') return c.participants.some(p => favorites.includes(p.id)); return c.type===filter; });
   if(filtered.length===0){ list.innerHTML='<div class="inbox-empty">📭<br>No messages yet.</div>'; return; }
   list.innerHTML = filtered.map(c => {
     let avHtml = '';
@@ -1661,7 +1716,7 @@ function renderInbox(s, filter) {
 
 function filterInbox(s, type, el) {
   const parent = el.parentElement;
-  parent.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('on'));
+  parent.querySelectorAll('.inbox-chip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
   renderInbox(s, type);
 }
@@ -1968,11 +2023,34 @@ const STRINGS = {
     myMatches:'My Matches', noMatches:'Keep swiping to find matches',
     discover:'Discover', cruiseMatch:'Cruise / Match', myProfile:'My Profile', account:'Account', connect:'Connect',
     noMoreProfiles:'No more profiles nearby', swipeAgain:'Swipe Again',
+    addMoment:'+ Add', addToGroupTitle:'Add to Group Chat', ageLabel:'Age', ageRangeLabel:'Age Range', albumNameLabel:'Album name', all:'All', applyFilters:'Apply Filters', askMe:'Ask Me', athletic:'Athletic', bareback:'Bareback', bioLabel:'Bio', blockedUsersHeader:'Blocked Users', bodyLabel:'Body Type', bottom:'Bottom', buyTickets:'🎟 Buy Tickets', cameraRoll:'Camera Roll', chatTag:'Chat', createBtn:'Create', cruiseFiltersTitle:'Cruise Filters', datesTag:'Dates', dating:'Dating', datingIntimacy:'Dating & Intimacy', e2eEncrypted:'🔒 E2E encrypted', endowmentLabel:'Endowment', ethnicityLabel:'Ethnicity', eventDateLabel:'Date & Time', eventDescLabel:'Description', eventLocLabel:'Location', eventNameLabel:'Event Name', eventsFilter:'🎟 Events', expires24h:'24 hours', expires7d:'7 days', expiresNever:'Never', extraLarge:'Extra Large', friendsTag:'Friends', fromDevice:'Choose a photo from your device', fwb:'FWB', genderLabel:'Gender', groupsFilter:'👥 Groups', heightLabel:'Height', locationFuzzy:'Location fuzzy · ±300m', lookingForLabel:'Looking for', man:'Man', married:'Married', maxDistanceLabel:'Max Distance:', maxParticipants:'Max 5 participants for P2P relay', momentExpires:'Expires in 24h', moments:'Moments', muscular:'Muscular', mutualOptIn:'Mutual opt-in dating', myTypeFilters:'My Type Filters', nameLabel:'Name', newAlbumBtn:'＋ New Album', newAlbumTitle:'New Album', nextProfile:'Next', noMethod:'None', noMoments:'No moments yet', noStrings:'No Strings', nonbinary:'Non-binary', openRelationship:'Open Relationship', optionsTitle:'Options', orFromAlbums:'or from your albums', p2pReady:'🟢 P2P transfer ready', p2pRelay:'P2P relay', poly:'Poly', positionLabel:'Position', postEvent:'Post Event', postMoment:'Post Moment', preferNotToSay:'Prefer not to say', prep:'PrEP', prepPlusDoxy:'PrEP + Doxy', prevProfile:'Previous', preventionLabel:'Prevention', privacyLabel:'Privacy', privateLabel:'Private', profileOf:'of', profileSetupNav:'Profile Setup', publicLabel:'Public', recipientExpires:'Recipient\'s copy expires', relStatusLabel:'Relationship Status', relationshipTag:'Relationship', safe:'Safe', safetyPracticesLabel:'Safety Practices', saveEvent:'Save Event', savePrefs:'Save Preferences', saveProfile:'Save Profile', sendAPhoto:'Send a Photo', sendMsgPlaceholder:'Send a message…', shareWithFriends:'Share with Friends', side:'Side', single:'Single', slim:'Slim', stocky:'Stocky', tapToView:'Tap to view', ticketUrlLabel:'Ticket URL', top:'Top', transMan:'Trans man', transWoman:'Trans woman', versatile:'Versatile', weightLabel:'Weight', whoAreYou:'Who are you?', writeToWall:'Write to Stall Wall...', yourMatches:'Your Matches', yourMoment:'Your Moment', small:'Small', large:'Large', browseGuest:'Browse as guest', createProfile:'Create my profile', onboardSub:'Two modes. P2P focused. Local storage facilitates message transmission when offline for up to 48 hours.', cruiseDesc:'Live map of who\'s near you. Grid view included.', matchDesc:'Swipe. Match only when mutual. No algorithm.', average:'Average', mapView:'Map', gridView:'Grid', wallView:'Wall', filtersBtn:'Filters', favourites:'Favourites', close:'Close', favouritesAdded:'Added to favourites', favouritesRemoved:'Removed from favourites'},
+  es: {
+    cruise:'Crucero', match:'Match', messages:'Mensajes', events:'Eventos', albums:'Álbumes', profile:'Perfil',
+    setup:'Mi Perfil', localEvents:'Eventos Locales', myAlbumes:'Mis Álbumes', stallWall:'Stall Wall',
+    matchmaker:'Matchmaker', explore:'Explorar', signIn:'Iniciar sesión',
+    peerConn:'Conexión P2P', intimacyHealth:'Intimidad y Salud',
+    createEvent:'+ Crear Evento', viewDetails:'Ver Detalles →',
+    nearby:'cerca', liveMap:'mapa en vivo', allNearby:'Todos cerca', onlineNow:'En línea ahora',
+    hookups:'Encuentros', dates:'Citas', friends:'Amigos', tops:'Activos', bottoms:'Pasivos', saved:'❤️ Guardados',
+    bears:'Osos', jocks:'Deportistas', wave:'Saludo', message:'Mensaje', more:'Más',
+    saveFavorites:'Guardar en favoritos', removeFromFavorites:'Quitar de favoritos',
+    sendWave:'Enviar un saludo', blockUser:'Bloquear usuario', report:'Reportar', cancel:'Cancelar',
+    blocked:'Bloqueados', unblock:'Desbloquear', noBlocked:'Sin usuarios bloqueados',
+    waveSent:'¡Saludo enviado!', blockConfirm:'¿Bloquear a esta persona?', blockDesc:'No aparecerán en tu feed.',
+    blockDone:'Usuario bloqueado', reportDone:'Reporte recibido',
+    matchFlash:'¡ES UN MATCH', keepSwiping:'Seguir swipeando', sendMessage:'Enviar mensaje',
+    stallWall:'Stall Wall', postPlaceholder:'Di algo al vecindario…', post:'Publicar',
+    peersNearby:'personas cerca', visible:'Visible', hidden:'Oculto', visibleOnMap:'Visible en mapa',
+    language:'Idioma', chooseLanguage:'Elige tu idioma',
+    about:'Sobre mí', socials:'Redes sociales', peerConn:'Conexión P2P',
+    joined:'Recién llegó', newNearby:'Alguien nuevo cerca', newMsg:'Nuevo mensaje',
+    myMatches:'Mis Matches', noMatches:'Sigue swipeando para encontrar matches',
+    discover:'Descubrir', cruiseMatch:'Crucero / Match', myProfile:'Mi Perfil', account:'Cuenta', connect:'Conectar',
+    noMoreProfiles:'Sin más perfiles cerca', swipeAgain:'Deslizar de nuevo',
     onboardSub:'Two modes. P2P focused. Local storage facilitates message transmission when offline for up to 48 hours.',
     cruiseDesc:'Live map of who\'s near you. Grid view included.',
     matchDesc:'Swipe. Match only when mutual. No algorithm.',
-    createProfile:'Create my profile', browseGuest:'Browse as guest', setupTitle:'Set up your profile',
-  },
+    createProfile:'Create my profile', browseGuest:'Browse as guest', setupTitle:'Set up your profile', small:'Pequeño', large:'Grande', average:'Promedio', mapView:'Mapa', gridView:'Cuadrícula', wallView:'Muro', filtersBtn:'Filtros', favourites:'Favoritos', close:'Cerrar', favouritesAdded:'Añadido a favoritos', favouritesRemoved:'Eliminado de favoritos'},
   es: {
     cruise:'Crucero', match:'Match', messages:'Mensajes', events:'Eventos', albums:'Álbumes', profile:'Perfil',
     setup:'Mi Perfil', localEvents:'Eventos Locales', myAlbums:'Mis Álbumes', stallWall:'Stall Wall',
@@ -2028,7 +2106,7 @@ const STRINGS = {
     cruiseDesc:'Mapa ao vivo de quem está por perto. Vista em grade incluída.',
     matchDesc:'Deslize. Match só quando é mútuo. Sem algoritmo.',
     createProfile:'Criar meu perfil', browseGuest:'Navegar como convidado', setupTitle:'Configure seu perfil',
-  },
+    small:'Pequeno', large:'Grande', average:'Média', mapView:'Mapa', gridView:'Grade', wallView:'Mural', filtersBtn:'Filtros', favourites:'Favoritos', close:'Fechar', favouritesAdded:'Adicionado aos favoritos', favouritesRemoved:'Removido dos favoritos'},
   fr: {
     cruise:'Cruise', match:'Match', messages:'Messages', events:'Événements', albums:'Albums', profile:'Profil',
     setup:'Mon Profil', localEvents:'Événements Locaux', myAlbums:'Mes Albums', stallWall:'Stall Wall',
@@ -2058,7 +2136,7 @@ const STRINGS = {
     setupTitle:'Configurez votre profil',
     discover:'Découvrir', cruiseMatch:'Cruise / Match', myProfile:'Mon Profil', account:'Compte', connect:'Connecter',
     noMoreProfiles:'Plus de profils à proximité', swipeAgain:'Swiper à nouveau',
-  },
+    small:'Petit', large:'Grand', average:'Moyen', mapView:'Carte', gridView:'Grille', wallView:'Mur', filtersBtn:'Filtres', favourites:'Favoris', close:'Fermer', favouritesAdded:'Ajouté aux favoris', favouritesRemoved:'Retiré des favoris'},
   de: {
     cruise:'Cruise', match:'Match', messages:'Nachrichten', events:'Veranstaltungen', albums:'Alben', profile:'Profil',
     setup:'Mein Profil', localEvents:'Lokale Events', myAlbums:'Meine Alben', stallWall:'Stall Wall',
@@ -2088,10 +2166,23 @@ const STRINGS = {
     setupTitle:'Profil einrichten',
     discover:'Entdecken', cruiseMatch:'Cruise / Match', myProfile:'Mein Profil', account:'Konto', connect:'Verbinden',
     noMoreProfiles:'Keine weiteren Profile in der Nähe', swipeAgain:'Nochmals swipen',
-  }
+    small:'Klein', large:'Groß', average:'Durchschnittlich', mapView:'Karte', gridView:'Raster', wallView:'Wand', filtersBtn:'Filter', favourites:'Favoriten', close:'Schließen', favouritesAdded:'Zu Favoriten hinzugefügt', favouritesRemoved:'Von Favoriten entfernt'}
 };
 let currentLang = localStorage.getItem('bunk_lang') || 'en';
 function t(key){ return (STRINGS[currentLang]||STRINGS.en)[key] || STRINGS.en[key] || key; }
+// Translate profile value strings (body type, position, status, etc.) using STRINGS keys
+const _valKeyMap={
+  'Slim':'slim','Athletic':'athletic','Average':'average','Stocky':'stocky','Muscular':'muscular',
+  'Large':'large','Small':'small','Extra Large':'extraLarge',
+  'Top':'top','Bottom':'bottom','Versatile':'versatile','Side':'side',
+  'Man':'man','Non-binary':'nonbinary','Trans man':'transMan','Trans woman':'transWoman',
+  'Single':'single','Open Relationship':'openRelationship','Poly':'poly',
+  'Dating':'dating','Married':'married','Ask Me':'askMe',
+  'Bareback':'bareback','Safe':'safe','PrEP':'prep','PrEP + Doxy':'prepPlusDoxy','None':'noMethod',
+  'Chat':'chatTag','Friends':'friendsTag','No Strings':'noStrings','FWB':'fwb',
+  'Dates':'datesTag','Relationship':'relationshipTag'
+};
+function tVal(v){ if(!v) return v; const key=_valKeyMap[v]; return key ? t(key) : v; }
 function setLang(code){
   currentLang=code;
   localStorage.setItem('bunk_lang',code);
@@ -2108,6 +2199,7 @@ function setLang(code){
 }
 // Run on load
 document.addEventListener('DOMContentLoaded',()=>setLang(currentLang));
+setTimeout(() => { renderMomentsStrip(); }, 200);
 setTimeout(()=>setLang(currentLang),100);
 
 // ── BLOCK SYSTEM ──
@@ -2185,6 +2277,27 @@ function newUserNearby(){
 }
 setTimeout(newUserNearby, 20000);
 
+
+// ── PROFILE BROWSE STATE ──
+let _browseList = [];
+let _browseIdx = -1;
+function setBrowseList(list, startIdx) { _browseList = list; _browseIdx = startIdx || 0; updateBrowseNav(); }
+function browsePrev(s) { if (_browseIdx <= 0) return; _browseIdx--; const p = _browseList[_browseIdx]; if (p) showProfile(p, s); updateBrowseNav(); }
+function browseNext(s) { if (_browseIdx >= _browseList.length - 1) return; _browseIdx++; const p = _browseList[_browseIdx]; if (p) showProfile(p, s); updateBrowseNav(); }
+function updateBrowseNav() { ['m', 'd'].forEach(s => { const el = document.getElementById('browse-nav-' + s); if (el) { if (_browseList.length > 1) { el.textContent = (_browseIdx + 1) + ' / ' + _browseList.length; el.style.opacity = '1'; } else { el.style.opacity = '0'; } } const btnPrev = document.getElementById('browse-prev-' + s); const btnNext = document.getElementById('browse-next-' + s); if (btnPrev) btnPrev.style.opacity = _browseIdx <= 0 ? '0.3' : '1'; if (btnNext) btnNext.style.opacity = _browseIdx >= _browseList.length - 1 ? '0.3' : '1'; }); }
+let _swipeStartX = 0, _swipeStartY = 0;
+function attachSwipeToProfile(screen, s) { screen.addEventListener('touchstart', (e) => { _swipeStartX = e.touches[0].clientX; _swipeStartY = e.touches[0].clientY; }, false); screen.addEventListener('touchend', (e) => { const endX = e.changedTouches[0].clientX; const endY = e.changedTouches[0].clientY; const diffX = endX - _swipeStartX; const diffY = endY - _swipeStartY; if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 80) { if (diffX > 0) browsePrev(s); else browseNext(s); } }, false); }
+
+// ── MOMENTS/STORIES ──
+let momentsData = [{profileId:'me', name:'Your Moment', emoji:'👤', isMe:true}, {profileId:'p3', name:'Seb', emoji:'👦', img:'🌅', posted:'2h ago', seen:false}, {profileId:'p7', name:'Diego', emoji:'👨', img:'🍕', posted:'5h ago', seen:false}, {profileId:'p12', name:'Finn', emoji:'🧔', img:'🏋️', posted:'8h ago', seen:true}, {profileId:'p1', name:'Marco', emoji:'🧑', img:'📸', posted:'11h ago', seen:true}];
+let _currentMomentIdx = 0;
+function renderMomentsStrip() { ['m', 'd'].forEach(suffix => { const container = document.getElementById('moments-strip' + (suffix === 'd' ? '-d' : '')); if (!container) return; let html = '<div class="moments-scroll-wrap">'; momentsData.forEach((m, idx) => { const ringClass = m.isMe ? '' : (m.seen ? 'moment-ring seen' : 'moment-ring unseen'); const clickHandler = m.isMe ? 'openMomentEditor()' : 'openStoryViewer(' + idx + ')'; html += '<div class="moment-item" onclick="' + clickHandler + '"><div class="moment-ring-outer ' + ringClass + '"><div class="moment-av">' + m.emoji + '</div></div><div class="moment-name">' + m.name + '</div>' + (m.isMe ? '<div class="moment-add">+</div>' : '') + '</div>'; }); html += '</div>'; container.innerHTML = html; }); }
+function openStoryViewer(idx) { _currentMomentIdx = idx; const m = momentsData[idx]; const overlay = document.getElementById('story-overlay'); if (!overlay) return; const title = overlay.querySelector('.story-title'); const time = overlay.querySelector('.story-time'); const content = overlay.querySelector('.story-content'); const views = overlay.querySelector('.story-views'); if (title) title.textContent = m.name; if (time) time.textContent = m.posted; if (content) content.textContent = m.img || '📸'; if (views) views.textContent = '👁 3 views · P2P relay'; overlay.classList.add('open'); overlay.onclick = handleStoryClick; }
+function handleStoryClick(e) { const overlay = document.getElementById('story-overlay'); const contentEl = overlay.querySelector('.story-content'); if (!contentEl) return; const rect = contentEl.getBoundingClientRect(); const clickX = e.clientX; if (clickX < rect.left + rect.width / 2) { if (_currentMomentIdx > 0) { _currentMomentIdx--; openStoryViewer(_currentMomentIdx); } } else { if (_currentMomentIdx < momentsData.length - 1) { _currentMomentIdx++; openStoryViewer(_currentMomentIdx); } } }
+function closeStoryViewer() { const overlay = document.getElementById('story-overlay'); if (overlay) { overlay.classList.remove('open'); overlay.onclick = null; } }
+function openMomentEditor() { showBanner('📸', 'Share your moment', 'Open camera or choose photo'); }
+
+
 // ── SIMULATION ENGINE (BUSY AREA) ──
 function startSimulation(){
   if(simActive)return; simActive=true;
@@ -2226,5 +2339,33 @@ function startSimulation(){
   }, 8000);
 }
 </script>
+
+<!-- Favourites Modal -->
+<div class="modal-overlay" id="favorites-modal" onclick="closeFavoritesModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:70vh;display:flex;flex-direction:column">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px" data-t="favourites">Favourites</div>
+    <div class="fav-modal-list blocked-list" style="flex:1;overflow-y:auto"></div>
+    <button class="btn-cta" onclick="closeFavoritesModal()" style="margin-top:12px" data-t="close">Close</button>
+  </div>
+</div>
+<!-- Story/Moments Overlay -->
+<div id="story-overlay">
+  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin:12px 16px">
+    <div class="story-progress-bar" style="height:100%;background:#fff;border-radius:2px;width:0%;transition:width 5s linear"></div>
+  </div>
+  <div style="position:absolute;top:18px;left:0;right:0;display:flex;align-items:center;padding:0 16px;gap:10px">
+    <div class="story-avatar" style="width:38px;height:38px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px">👤</div>
+    <div>
+      <div class="story-title" style="color:#fff;font-weight:700;font-size:15px"></div>
+      <div class="story-time" style="color:rgba(255,255,255,0.6);font-size:11px"></div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <div class="story-views" style="color:rgba(255,255,255,0.7);font-size:12px;padding-top:2px"></div>
+      <button onclick="closeStoryViewer()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0">✕</button>
+    </div>
+  </div>
+  <div class="story-content" style="font-size:100px;text-align:center;pointer-events:none;user-select:none;margin-top:40px"></div>
+  <div style="position:absolute;bottom:40px;left:0;right:0;padding:0 20px;text-align:center;color:rgba(255,255,255,0.5);font-size:12px">Tap left/right to navigate</div>
+</div>
 </body>
 </html>
