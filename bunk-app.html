@@ -3,9 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- PWA / iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bunk">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#080a0f">
+<meta name="description" content="Bunk — P2P gay social. Private by design.">
+<!-- Manifest injected by JS below (single-file PWA) -->
+<link rel="manifest" id="pwa-manifest">
+<!-- iOS touch icon (orange B on dark) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23080a0f'/><text x='50%25' y='54%25' font-size='110' text-anchor='middle' dominant-baseline='middle' fill='%23ff4500' font-family='Arial Black,sans-serif' font-weight='900'>B</text></svg>">
 <title>Bunk · bunk.gay</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -377,8 +385,13 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .bubble{padding:9px 12px;border-radius:15px;font-size:13px;line-height:1.5}
 .msg.them .bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:3px}
 .msg.me .bubble{background:var(--cruise-dim);border:1px solid rgba(255,69,0,.2);border-bottom-right-radius:3px}
-.msg-t{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:0 4px}
-.msg.me .msg-t{text-align:right}
+.msg-t{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:0 4px;display:flex;align-items:center;gap:4px}
+.msg.me .msg-t{justify-content:flex-end}
+.msg-t .receipt{font-size:11px;line-height:1;transition:color .3s,opacity .3s}
+.msg-t .receipt.queued{color:var(--muted);opacity:.5}
+.msg-t .receipt.buffered{color:var(--muted);font-size:10px}
+.msg-t .receipt.delivered{color:var(--muted2)}
+.msg-t .receipt.read{color:var(--cruise)}
 
 /* ALBUM BUBBLE ATTACHMENTS */
 .album-bubble{display:flex;flex-direction:column;gap:0;overflow:hidden;border-radius:14px;border:1px solid var(--cruise);background:var(--surface2);min-width:180px;max-width:220px;cursor:pointer;transition:transform .15s}
@@ -555,9 +568,138 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .browse-chevron-prev{left:12px}
 .browse-chevron-next{right:12px}
 
+
+/* ── Explore Location ── */
+.explore-bar{display:flex;align-items:center;gap:8px;padding:6px 12px 0;flex-shrink:0}
+.explore-active-pill{display:none;align-items:center;gap:7px;padding:6px 12px;background:rgba(255,165,0,.12);border:1px solid rgba(255,165,0,.35);border-radius:22px;font-size:11px;color:#ffa500;font-family:'DM Mono',monospace;white-space:nowrap}
+.explore-active-pill.show{display:flex}
+.explore-reset-btn{background:none;border:none;color:#ffa500;font-size:11px;cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Mono',monospace}
+.explore-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:4000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.explore-modal-overlay.open{opacity:1;pointer-events:all}
+.explore-modal-sheet{width:100%;max-width:520px;background:var(--surface);border-radius:22px 22px 0 0;padding:20px 18px 32px;max-height:82vh;display:flex;flex-direction:column;gap:14px}
+.explore-search-wrap{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 14px}
+.explore-search-wrap input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:'DM Mono',monospace}
+.explore-section-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace}
+.explore-cities{display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.explore-city-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:border-color .15s}
+.explore-city-row:hover,.explore-city-row:active{border-color:var(--cruise)}
+.explore-city-flag{font-size:22px;flex-shrink:0}
+.explore-city-info{flex:1}
+.explore-city-name{font-size:14px;font-weight:600;color:var(--text)}
+.explore-city-sub{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px}
+.explore-city-count{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.explore-city-count-n{font-size:16px;font-weight:700;color:var(--cruise);font-family:'DM Mono',monospace}
+.explore-city-count-l{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+.explore-city-row.current-loc{border-color:rgba(0,212,170,.4);background:rgba(0,212,170,.06)}
+.profile-photo-wrap{width:90px;height:90px;border-radius:50%;background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s}
+.profile-photo-wrap:hover{border-color:var(--cruise)}
+.profile-photo-placeholder{font-size:32px}
+.profile-photo-img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.profile-photo-edit{position:absolute;bottom:4px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--cruise);display:flex;align-items:center;justify-content:center;font-size:10px}
+.msg-receipt{font-size:10px;color:var(--match);font-family:'DM Mono',monospace;text-align:right;padding-right:4px}
+.typing-dots{display:flex;gap:4px;align-items:center;padding:8px 12px;background:var(--surface2);border-radius:16px;width:fit-content}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--muted2);animation:typingBounce .9s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* Cruise mode — warm orange/fire tones */
+.mode-btn.active-cruise, #mbtn-cruise-m.active-cruise, #dbtn-cruise.active-cruise {
+  background: linear-gradient(135deg, rgba(255,69,0,.25), rgba(255,140,0,.15));
+  border-color: var(--cruise);
+  color: var(--cruise);
+}
+/* Match mode — cool teal/purple tones */
+.mode-btn.active-match, #mbtn-match-m.active-match, #dbtn-match.active-match {
+  background: linear-gradient(135deg, rgba(0,212,170,.2), rgba(110,60,220,.15));
+  border-color: var(--match);
+  color: var(--match);
+}
+/* Swipe card in match mode — purple tint */
+#m-match-m .sc-photo, #m-match-d .sc-photo { filter: saturate(1.1); }
+#m-match-m, #m-match-d { background: linear-gradient(180deg, rgba(110,60,220,.04) 0%, transparent 40%); }
+/* Cruise grid — subtle warm tint */
+#v-grid-m, #v-grid-d { background: linear-gradient(180deg, rgba(255,69,0,.03) 0%, transparent 30%); }
+.moment-emoji-picker{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.moment-emoji-picker span.selected{background:rgba(0,212,170,.2);border-radius:8px}
+.btn-ghost{background:none;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;width:100%}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(8,10,15,.95);z-index:5000;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface2);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:430px;max-height:80vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+.event-photo-wrap{width:100%;height:120px;border-radius:12px;background:var(--surface2);border:2px dashed var(--border2);cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s;display:flex;align-items:center;justify-content:center}
+.event-photo-wrap:hover{border-color:var(--cruise)}
+
+/* ── Login Screen ── */
+#screen-login{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:100vh;background:var(--bg);position:relative;overflow:hidden}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(255,69,0,.12) 0%, transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(0,212,170,.08) 0%, transparent 50%);pointer-events:none}
+.login-sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:32px 24px 40px;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--border)}
+.login-wordmark{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:5px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 50%,var(--match) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1}
+.login-tagline{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;text-align:center;margin-top:-8px;margin-bottom:4px}
+.login-input-wrap{position:relative;display:flex;align-items:center}
+.login-input-icon{position:absolute;left:14px;font-size:15px;color:var(--muted);pointer-events:none}
+.login-input{width:100%;padding:14px 16px 14px 40px;background:var(--surface2);border:1px solid var(--border);border-radius:13px;color:var(--text);font-size:15px;outline:none;transition:border-color .2s;font-family:'Inter',sans-serif;box-sizing:border-box}
+.login-input:focus{border-color:var(--cruise)}
+.login-forgot{text-align:right;font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline;margin-top:-6px}
+.login-forgot:hover{color:var(--cruise)}
+.login-divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-signup-row{text-align:center;font-size:13px;color:var(--muted);font-family:'DM Mono',monospace}
+.login-signup-row a{color:var(--cruise);cursor:pointer;text-decoration:none;font-weight:600}
+.login-signup-row a:hover{text-decoration:underline}
+.login-legal{text-align:center;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.7;padding:0 8px}
+.login-legal a{color:var(--muted2);text-decoration:underline}
+.login-error{background:rgba(255,60,60,.1);border:1px solid rgba(255,60,60,.3);border-radius:10px;padding:10px 14px;font-size:12px;color:#ff6b6b;font-family:'DM Mono',monospace;display:none;text-align:center}
+.login-error.show{display:block}
+
+.btn-login-outline{width:100%;padding:15px;background:transparent;color:var(--text);border:1.5px solid var(--border2);border-radius:13px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;transition:border-color .2s,color .2s}
+.btn-login-outline:hover{border-color:var(--cruise);color:var(--cruise)}
+/* ── Add to Home Screen banner (iOS) ── */
+#a2hs-banner{position:fixed;bottom:0;left:0;right:0;z-index:20000;background:var(--surface);border-top:1px solid var(--border2);padding:14px 18px calc(14px + var(--safe-bot));display:none;flex-direction:column;gap:8px;animation:slideUp .3s ease}
+#a2hs-banner.show{display:flex}
+.a2hs-row{display:flex;align-items:center;gap:12px}
+.a2hs-icon{width:44px;height:44px;border-radius:10px;background:var(--cruise);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;font-family:'Bebas Neue',sans-serif;flex-shrink:0}
+.a2hs-text{flex:1}
+.a2hs-title{font-weight:600;font-size:14px;color:var(--text)}
+.a2hs-sub{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
+.a2hs-steps{font-size:12px;color:var(--muted2);line-height:1.6;padding:8px 12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)}
+.a2hs-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;flex-shrink:0}
+/* ── Measure sliders (height / weight) ── */
+.measure-slider{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:var(--border2);outline:none;cursor:pointer;margin:6px 0 2px}
+.measure-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--cruise);box-shadow:0 0 10px var(--cruise-glow);cursor:pointer}
+.measure-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--cruise);box-shadow:0 0 10px var(--cruise-glow);cursor:pointer;border:none}
+.slider-display{font-family:'DM Mono',monospace;font-size:14px;color:var(--cruise);font-weight:600;margin-bottom:4px;letter-spacing:.04em}
+/* ── Photo grid ── */
+.photo-grid{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;border-radius:14px;overflow:hidden;background:var(--surface2);aspect-ratio:1.4/1;width:100%}
+.photo-slot{background:var(--surface2);border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s}
+.photo-slot:hover{border-color:var(--cruise)}
+.photo-slot.filled{border:none}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-slot-icon{font-size:22px;color:var(--muted)}
+.photo-slot.primary{grid-row:1/3}
+.photo-slot-rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);border:none;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+/* ── Toggle switch ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.toggle-lbl{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
+.toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:12px;cursor:pointer;transition:background .2s}
+.toggle-track:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle-sw input:checked+.toggle-track{background:var(--cruise)}
+.toggle-sw input:checked+.toggle-track:before{transform:translateX(20px)}
+/* ── Char counter ── */
+.char-counter{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-align:right;margin-top:2px}
+/* ── Section divider ── */
+.setup-section{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cruise);font-family:'DM Mono',monospace;padding:10px 0 5px;border-top:1px solid var(--border);margin-top:10px}
 </style>
 </head>
 <body>
+
+<div id="splash-screen" style="position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .6s ease">
+  <div id="splash-logo" style="font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:6px;background:linear-gradient(135deg,var(--cruise) 0%,#ff8c00 50%,var(--match) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;transform:translateY(20px);transition:all .5s cubic-bezier(.2,0,.2,1)">BUNK</div>
+  <div id="splash-tag" style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;opacity:0;transition:opacity .4s ease .3s">bunk.gay · P2P · Private</div>
+</div>
 
 <div id="global-entry">
   <div class="screen active" id="screen-splash">
@@ -581,8 +723,12 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <div class="mode-card cruise"><div class="mode-card-icon">🔥</div><div><div class="mode-card-title" data-t="cruise">Cruise</div><div class="mode-card-desc" data-t="cruiseDesc">Live map of who's near you. Grid view included.</div></div></div>
         <div class="mode-card match"><div class="mode-card-icon">✨</div><div><div class="mode-card-title" data-t="matchmaker">Matchmaker</div><div class="mode-card-desc" data-t="matchDesc">Swipe. Match only when mutual. No algorithm.</div></div></div>
       </div>
-      <button class="btn-cta" data-t="createProfile" onclick="goSetup()">Create my profile</button>
-      <button class="btn-ghost-sm" data-t="browseGuest" onclick="goMain(true)">Browse as guest</button>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+        <button class="btn-cta" data-t="signUp" onclick="goSetup()">Sign Up</button>
+        <button class="btn-login-outline" data-t="loginBtn" onclick="openLoginSheet()">Log In</button>
+        <button class="btn-ghost-sm" data-t="browseGuest" onclick="goMain(true)">Browse as Guest</button>
+      </div>
+      <div style="text-align:center;margin-top:4px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.7" data-t="loginLegal">By entering you agree to our Terms &amp; Privacy Policy. You must be 18+.</div>
     </div>
   </div>
 </div>
@@ -596,47 +742,113 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     <div class="icon-btn" onclick="showNavM('main')" style="border:none;font-size:18px">✕</div>
   </div>
   <div class="setup-body">
-    <div class="avatar-pick" onclick="document.getElementById('av-m').click()"><div class="avatar-ring"><span id="avph-m">📷</span></div></div>
-    <input type="file" id="av-m" style="display:none">
     <input type="file" id="camera-roll-input" accept="image/*" style="display:none" onchange="sendCameraRollPhoto(event)">
-    <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="nameLabel">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
-      <div class="fld"><label class="fld-lbl" data-t="ageLabel">Age</label><input class="fld-in" type="number" placeholder="28"></div>
+
+    <!-- Photo grid -->
+    <div class="photo-grid" id="photo-grid-m">
+      <div class="photo-slot primary" id="pslot-m-0" onclick="triggerPhotoSlot('m',0)">
+        <span class="photo-slot-icon">📷</span>
+        <input type="file" accept="image/*" style="display:none" id="pfile-m-0" onchange="handleSlotPhoto(event,'m',0)">
+      </div>
+      <div class="photo-slot" id="pslot-m-1" onclick="triggerPhotoSlot('m',1)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-m-1" onchange="handleSlotPhoto(event,'m',1)"></div>
+      <div class="photo-slot" id="pslot-m-2" onclick="triggerPhotoSlot('m',2)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-m-2" onchange="handleSlotPhoto(event,'m',2)"></div>
+      <div class="photo-slot" id="pslot-m-3" onclick="triggerPhotoSlot('m',3)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-m-3" onchange="handleSlotPhoto(event,'m',3)"></div>
+      <div class="photo-slot" id="pslot-m-4" onclick="triggerPhotoSlot('m',4)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-m-4" onchange="handleSlotPhoto(event,'m',4)"></div>
+      <div class="photo-slot" id="pslot-m-5" onclick="triggerPhotoSlot('m',5)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-m-5" onchange="handleSlotPhoto(event,'m',5)"></div>
     </div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;margin-top:4px">Tap to add photos · First photo is your primary</div>
+
+    <!-- Account -->
+    <div class="setup-section">Account</div>
+    <div class="fld"><label class="fld-lbl" data-t="emailLabel">Email</label><input class="fld-in" id="setup-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+    <div class="fld"><label class="fld-lbl" data-t="passwordLabel">Password</label><input class="fld-in" id="setup-password" type="password" placeholder="Min 6 characters" autocomplete="new-password"></div>
+
+    <!-- Basic info -->
+    <div class="setup-section" data-t="whoAreYou">Who are you?</div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="heightLabel">Height</label><input class="fld-in" type="text" placeholder="5'11&quot;"></div>
-      <div class="fld"><label class="fld-lbl" data-t="weightLabel">Weight</label><input class="fld-in" type="text" placeholder="165 lbs"></div>
+      <div class="fld"><label class="fld-lbl" data-t="nameLabel">Display Name</label><input class="fld-in" id="setup-name-m" type="text" placeholder="Marco" maxlength="30" oninput="updateCharCount('setup-name-m','name-count-m',30)"><div class="char-counter"><span id="name-count-m">0</span>/30</div></div>
+      <div class="fld"><label class="fld-lbl">Birthday</label><input class="fld-in" id="setup-dob-m" type="date" onchange="calcAge('m')"><div style="font-size:11px;color:var(--muted);margin-top:3px">Age: <span id="setup-age-display-m" style="color:var(--cruise)">—</span></div></div>
     </div>
+    <div class="fld"><label class="fld-lbl" data-t="bioLabel">About Me</label><textarea class="fld-in" id="setup-bio-m" rows="3" maxlength="255" placeholder="Tell people who you are and what you're looking for..." style="resize:none;font-family:inherit" oninput="updateCharCount('setup-bio-m','bio-count-m',255)"></textarea><div class="char-counter"><span id="bio-count-m">0</span>/255</div></div>
+    <div class="fld"><label class="fld-lbl">My Tags</label><input class="fld-in" id="setup-tags-m" type="text" placeholder="#bear #hairy #friendly"><div style="font-size:10px;color:var(--muted);margin-top:2px">Space-separated hashtags</div></div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="bodyLabel">Body</label><select class="fld-in"><option>—</option><option data-t="slim">Slim</option><option data-t="athletic">Athletic</option><option data-t="average">Average</option><option data-t="stocky">Stocky</option><option data-t="muscular">Muscular</option><option data-t="large">Large</option></select></div>
-      <div class="fld"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option data-t="small">Small</option><option>Average</option><option data-t="large">Large</option><option data-t="extraLarge">Extra Large</option></select></div>
-    </div>
-    <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="genderLabel">Gender</label><select class="fld-in"><option data-t="man">Man</option><option data-t="nonbinary">Non-binary</option><option data-t="transMan">Trans man</option><option data-t="transWoman">Trans woman</option><option>Prefer not to say</option></select></div>
-      <div class="fld"><label class="fld-lbl" data-t="ethnicityLabel">Ethnicity</label>
-        <select class="fld-in">
-          <option>Prefer not to say</option><option>Middle Eastern / North African</option><option>East Asian</option><option>South Asian</option><option>Southeast Asian</option><option>Hispanic / Latino / Latine</option><option>Black / African descent</option><option>Indigenous / Native</option><option>Pacific Islander</option><option>White</option><option>Mixed / Multiracial</option><option>Self-describe</option>
-        </select>
+      <div class="fld"><label class="fld-lbl" data-t="heightLabel">Height</label>
+        <div class="slider-display" id="height-display-m">5'9" · 175 cm</div>
+        <input type="range" class="measure-slider" id="height-slider-m" min="140" max="220" value="175" oninput="updateMeasure('height','m')">
+      </div>
+      <div class="fld"><label class="fld-lbl" data-t="weightLabel">Weight</label>
+        <div class="slider-display" id="weight-display-m">165 lbs · 75 kg</div>
+        <input type="range" class="measure-slider" id="weight-slider-m" min="90" max="350" value="165" oninput="updateMeasure('weight','m')">
       </div>
     </div>
-    
-    <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--cruise);font-family:'DM Mono',monospace;padding:10px 0 5px;border-top:1px solid var(--border);margin-top:4px" data-t="datingIntimacy">Dating & Intimacy</div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="relStatusLabel">Status</label><select class="fld-in"><option data-t="single">Single</option><option data-t="openRelationship">Open Relationship</option><option data-t="poly">Poly</option><option data-t="dating">Dating</option><option data-t="married">Married</option><option data-t="askMe">Ask Me</option></select></div>
-      <div class="fld"><label class="fld-lbl" data-t="positionLabel">Position</label><select class="fld-in"><option>Prefer not to say</option><option data-t="top">Top</option><option data-t="bottom">Bottom</option><option data-t="versatile">Versatile</option><option data-t="side">Side</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="bodyLabel">Body Type</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option><option>Large</option></select></div>
+      <div class="fld"><label class="fld-lbl">Body Hair</label><select class="fld-in"><option>—</option><option>Smooth</option><option>Some hair</option><option>Hairy</option><option>Very hairy</option></select></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label class="fld-lbl" data-t="safetyPracticesLabel">Safety Practices</label><select class="fld-in"><option>Ask Me</option><option data-t="bareback">Bareback</option><option data-t="safe">Safe</option></select></div>
-      <div class="fld"><label class="fld-lbl" data-t="preventionLabel">Prevention</label><select class="fld-in"><option>Ask Me</option><option data-t="prep">PrEP</option><option data-t="prepPlusDoxy">PrEP + Doxy</option><option data-t="noMethod">None</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="genderLabel">Gender</label><select class="fld-in"><option>Man</option><option>Non-binary</option><option>Trans man</option><option>Trans woman</option><option>Prefer not to say</option></select></div>
+      <div class="fld"><label class="fld-lbl">Pronouns</label><select class="fld-in"><option>—</option><option>He/Him</option><option>She/Her</option><option>They/Them</option><option>He/They</option><option>She/They</option><option>Ask me</option></select></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl" data-t="ethnicityLabel">Ethnicity</label>
+        <select class="fld-in">
+          <option>Prefer not to say</option><option>Middle Eastern / North African</option><option>East Asian</option><option>South Asian</option><option>Southeast Asian</option><option>Hispanic / Latino</option><option>Black / African descent</option><option>Indigenous / Native</option><option>Pacific Islander</option><option>White</option><option>Mixed / Multiracial</option>
+        </select>
+      </div>
+      <div class="fld"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option>Small</option><option>Average</option><option>Large</option><option>Extra Large</option></select></div>
+    </div>
+    <div class="toggle-row" style="margin-top:6px">
+      <span class="toggle-lbl">Show age on profile</span>
+      <label class="toggle-sw"><input type="checkbox" id="toggle-showage-m" checked><span class="toggle-track"></span></label>
     </div>
 
-    <div class="fld" style="margin-top:10px"><label class="fld-lbl" data-t="lookingForLabel">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)" data-t="chatTag">Chat</div><div class="tag" onclick="toggleTag(this)" data-t="friendsTag">Friends</div><div class="tag" onclick="toggleTag(this)" data-t="noStrings">No Strings</div><div class="tag" onclick="toggleTag(this)" data-t="fwb">FWB</div><div class="tag" onclick="toggleTag(this)" data-t="datesTag">Dates</div><div class="tag" onclick="toggleTag(this)" data-t="relationshipTag">Relationship</div></div></div>
-    
-    <div class="setup-section-lbl" style="margin-top:16px" data-t="blockedUsersHeader">Blocked users</div>
+    <!-- Tribes -->
+    <div class="setup-section">Tribes</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Select all that apply</div>
+    <div class="fld"><label class="fld-lbl">I am</label><div class="tag-grid" id="tribes-iam-m"><div class="tag" onclick="toggleTag(this)">Bear</div><div class="tag" onclick="toggleTag(this)">Daddy</div><div class="tag" onclick="toggleTag(this)">Otter</div><div class="tag" onclick="toggleTag(this)">Jock</div><div class="tag" onclick="toggleTag(this)">Twink</div><div class="tag" onclick="toggleTag(this)">Muscle</div><div class="tag" onclick="toggleTag(this)">Rugged</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Geek</div><div class="tag" onclick="toggleTag(this)">Guy Next Door</div><div class="tag" onclick="toggleTag(this)">Trans</div><div class="tag" onclick="toggleTag(this)">Bi</div></div></div>
+    <div class="fld" style="margin-top:8px"><label class="fld-lbl">I'm into</label><div class="tag-grid" id="tribes-into-m"><div class="tag" onclick="toggleTag(this)">Bears</div><div class="tag" onclick="toggleTag(this)">Daddies</div><div class="tag" onclick="toggleTag(this)">Otters</div><div class="tag" onclick="toggleTag(this)">Jocks</div><div class="tag" onclick="toggleTag(this)">Twinks</div><div class="tag" onclick="toggleTag(this)">Muscle</div><div class="tag" onclick="toggleTag(this)">Rugged</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Geeks</div><div class="tag" onclick="toggleTag(this)">All types</div></div></div>
+
+    <!-- Dating & Intimacy -->
+    <div class="setup-section" data-t="datingIntimacy">Dating & Intimacy</div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl" data-t="relStatusLabel">Status</label><select class="fld-in"><option>Single</option><option>Open Relationship</option><option>Poly</option><option>Dating</option><option>Married</option><option>Ask Me</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="positionLabel">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Versatile Top</option><option>Versatile Bottom</option><option>Side</option></select></div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-lbl">Show position on profile</span>
+      <label class="toggle-sw"><input type="checkbox" id="toggle-showpos-m" checked><span class="toggle-track"></span></label>
+    </div>
+    <div class="fld" style="margin-top:8px"><label class="fld-lbl" data-t="lookingForLabel">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">No Strings</div><div class="tag" onclick="toggleTag(this)">FWB</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Relationship</div><div class="tag" onclick="toggleTag(this)">Hookup</div></div></div>
+
+    <!-- Health -->
+    <div class="setup-section">Health</div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl" data-t="safetyPracticesLabel">Safety Practices</label><select class="fld-in"><option>Ask Me</option><option>Bareback</option><option>Safe</option></select></div>
+      <div class="fld"><label class="fld-lbl" data-t="preventionLabel">Prevention</label><select class="fld-in"><option>Ask Me</option><option>PrEP</option><option>PrEP + Doxy</option><option>None</option></select></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">HIV Status</label><select class="fld-in"><option>Prefer not to say</option><option>Negative</option><option>Negative on PrEP</option><option>Positive</option><option>Positive — Undetectable</option></select></div>
+      <div class="fld"><label class="fld-lbl">Last Tested</label><input class="fld-in" type="date" id="setup-lasttested-m"></div>
+    </div>
+    <div class="fld" style="margin-top:4px"><label class="fld-lbl">Vaccinations</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">COVID-19</div><div class="tag" onclick="toggleTag(this)">Monkeypox</div><div class="tag" onclick="toggleTag(this)">HPV</div><div class="tag" onclick="toggleTag(this)">Hepatitis A</div><div class="tag" onclick="toggleTag(this)">Hepatitis B</div><div class="tag" onclick="toggleTag(this)">Meningitis</div></div></div>
+
+    <!-- Social links -->
+    <div class="setup-section">Social Links</div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">Instagram</label><input class="fld-in" type="text" placeholder="@username"></div>
+      <div class="fld"><label class="fld-lbl">X / Twitter</label><input class="fld-in" type="text" placeholder="@handle"></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label class="fld-lbl">TikTok</label><input class="fld-in" type="text" placeholder="@username"></div>
+      <div class="fld"><label class="fld-lbl">Bluesky</label><input class="fld-in" type="text" placeholder="handle.bsky.social"></div>
+    </div>
+    <div class="fld"><label class="fld-lbl">Website</label><input class="fld-in" type="url" placeholder="https://"></div>
+
+    <!-- Blocked users -->
+    <div class="setup-section" data-t="blockedUsersHeader">Blocked Users</div>
     <div id="blocked-list-m" class="blocked-list"><div class="blocked-empty" data-t="noBlocked">No blocked users</div></div>
-    <div id="blocked-list-d" class="blocked-list"></div>
-    
-    <button class="btn-cta" onclick="goMain()" data-t="saveProfile">Save Profile</button>
+
+    <button class="btn-cta" style="margin-top:24px" onclick="goMain()" data-t="saveProfile">Save Profile</button>
   </div>
 </div>
 
@@ -644,6 +856,10 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   <div class="topbar">
     <div class="topbar-logo">BUNK</div>
     <div class="peer-pill"><div class="peer-dot" id="pdot-m"></div><span id="pct-m">182 nearby</span></div>
+    <button onclick="openExploreModal()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;color:var(--muted2)" title="Explore locations">🌐</button>
+  </div>
+  <div class="explore-bar">
+    <div class="explore-active-pill" id="explore-pill-m">🌍 <span id="explore-city-name-m">Exploring</span> <button class="explore-reset-btn" onclick="resetExploreLocation()">Reset</button></div>
   </div>
   <div class="mode-toggle">
     <button class="mode-btn active-cruise" id="mbtn-cruise-m" onclick="setMode('m', 'cruise')">🔥 <span data-t="cruise">Cruise</span></button>
@@ -660,7 +876,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     </div>
     <div id="v-map-m" class="map-wrap">
       <div id="bunk-map-m" style="width:100%;height:100%"></div>
-      <div class="map-count-badge"><span id="map-count-m">182</span> peers nearby</div>
+      <div class="map-count-badge"><span id="map-count-m">182</span> <span data-t="peersNearby">peers nearby</span></div>
       <div class="map-loc-bar"><div class="map-loc-dot"></div><span data-t="locationFuzzy">Location fuzzy · ±300m</span></div>
       <div class="map-vis-toggle is-visible" id="mapvis-toggle-m" onclick="toggleMapVis('m')" style="position:absolute;bottom:58px;right:12px;z-index:500;display:flex;align-items:center;gap:7px;padding:7px 13px;background:rgba(8,10,15,.88);border:1px solid var(--border2);border-radius:22px;backdrop-filter:blur(10px);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;">
         <div class="map-vis-dot" style="width:7px;height:7px;border-radius:50%;background:var(--cruise);box-shadow:0 0 6px var(--cruise)"></div><span id="mapvis-label-m">📍 Visible</span>
@@ -804,26 +1020,133 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 </div>
 
 <div class="ds-main">
-  <div class="view" id="view-setup-d">
-    <div class="ds-content-hdr">
-      <div><div class="ds-content-title" data-t="setup">Profile Setup</div></div>
+  <div class="view" id="view-setup-d" style="overflow-y:auto">
+    <div class="ds-content-hdr" style="position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)">
+      <div><div class="ds-content-title" data-t="profileSetupNav">Profile Setup</div></div>
       <button class="match-action-btn" onclick="showNavD('main')" style="width:auto;padding:6px 12px;margin:0">✕ Close</button>
     </div>
-    <div class="setup-body" style="max-width:600px;margin:0 auto;width:100%">
-      <div class="avatar-pick"><div class="avatar-ring">📷</div></div>
-      <div class="fld-row">
-        <div class="fld"><label class="fld-lbl" data-t="nameLabel">Name</label><input class="fld-in" type="text" placeholder="Marco"></div>
-        <div class="fld"><label class="fld-lbl" data-t="ageLabel">Age</label><input class="fld-in" type="number" placeholder="28"></div>
+    <div class="setup-body" style="max-width:600px;margin:0 auto;width:100%;padding-bottom:60px">
+
+      <!-- Photo grid -->
+      <div class="photo-grid" id="photo-grid-d" style="margin-top:16px">
+        <div class="photo-slot primary" id="pslot-d-0" onclick="triggerPhotoSlot('d',0)">
+          <span class="photo-slot-icon">📷</span>
+          <input type="file" accept="image/*" style="display:none" id="pfile-d-0" onchange="handleSlotPhoto(event,'d',0)">
+        </div>
+        <div class="photo-slot" id="pslot-d-1" onclick="triggerPhotoSlot('d',1)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-d-1" onchange="handleSlotPhoto(event,'d',1)"></div>
+        <div class="photo-slot" id="pslot-d-2" onclick="triggerPhotoSlot('d',2)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-d-2" onchange="handleSlotPhoto(event,'d',2)"></div>
+        <div class="photo-slot" id="pslot-d-3" onclick="triggerPhotoSlot('d',3)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-d-3" onchange="handleSlotPhoto(event,'d',3)"></div>
+        <div class="photo-slot" id="pslot-d-4" onclick="triggerPhotoSlot('d',4)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-d-4" onchange="handleSlotPhoto(event,'d',4)"></div>
+        <div class="photo-slot" id="pslot-d-5" onclick="triggerPhotoSlot('d',5)"><span class="photo-slot-icon">＋</span><input type="file" accept="image/*" style="display:none" id="pfile-d-5" onchange="handleSlotPhoto(event,'d',5)"></div>
       </div>
-      <button class="btn-cta" onclick="showNavD('main')">Save Profile</button>
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;margin-top:4px">Click to add photos · First photo is your primary</div>
+
+      <!-- Account -->
+      <div class="setup-section">Account</div>
+      <div class="fld"><label class="fld-lbl" data-t="emailLabel">Email</label><input class="fld-in" id="setup-email-d" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="fld"><label class="fld-lbl" data-t="passwordLabel">Password</label><input class="fld-in" id="setup-password-d" type="password" placeholder="Min 6 characters" autocomplete="new-password"></div>
+
+      <!-- Basic info -->
+      <div class="setup-section" data-t="whoAreYou">Who are you?</div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Display Name</label><input class="fld-in" id="setup-name-d" type="text" placeholder="Marco" maxlength="30" oninput="updateCharCount('setup-name-d','name-count-d',30)"><div class="char-counter"><span id="name-count-d">0</span>/30</div></div>
+        <div class="fld"><label class="fld-lbl">Birthday</label><input class="fld-in" id="setup-dob-d" type="date" onchange="calcAge('d')"><div style="font-size:11px;color:var(--muted);margin-top:3px">Age: <span id="setup-age-display-d" style="color:var(--cruise)">—</span></div></div>
+      </div>
+      <div class="fld"><label class="fld-lbl" data-t="bioLabel">About Me</label><textarea class="fld-in" id="setup-bio-d" rows="3" maxlength="255" placeholder="Tell people who you are and what you're looking for..." style="resize:none;font-family:inherit" oninput="updateCharCount('setup-bio-d','bio-count-d',255)"></textarea><div class="char-counter"><span id="bio-count-d">0</span>/255</div></div>
+      <div class="fld"><label class="fld-lbl">My Tags</label><input class="fld-in" id="setup-tags-d" type="text" placeholder="#bear #hairy #friendly"><div style="font-size:10px;color:var(--muted);margin-top:2px">Space-separated hashtags</div></div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="heightLabel">Height</label>
+          <div class="slider-display" id="height-display-d">5'9" · 175 cm</div>
+          <input type="range" class="measure-slider" id="height-slider-d" min="140" max="220" value="175" oninput="updateMeasure('height','d')">
+        </div>
+        <div class="fld"><label class="fld-lbl" data-t="weightLabel">Weight</label>
+          <div class="slider-display" id="weight-display-d">165 lbs · 75 kg</div>
+          <input type="range" class="measure-slider" id="weight-slider-d" min="90" max="350" value="165" oninput="updateMeasure('weight','d')">
+        </div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="bodyLabel">Body Type</label><select class="fld-in"><option>—</option><option>Slim</option><option>Athletic</option><option>Average</option><option>Stocky</option><option>Muscular</option><option>Large</option></select></div>
+        <div class="fld"><label class="fld-lbl">Body Hair</label><select class="fld-in"><option>—</option><option>Smooth</option><option>Some hair</option><option>Hairy</option><option>Very hairy</option></select></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="genderLabel">Gender</label><select class="fld-in"><option>Man</option><option>Non-binary</option><option>Trans man</option><option>Trans woman</option><option>Prefer not to say</option></select></div>
+        <div class="fld"><label class="fld-lbl">Pronouns</label><select class="fld-in"><option>—</option><option>He/Him</option><option>She/Her</option><option>They/Them</option><option>He/They</option><option>She/They</option><option>Ask me</option></select></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="ethnicityLabel">Ethnicity</label>
+          <select class="fld-in">
+            <option>Prefer not to say</option><option>Middle Eastern / North African</option><option>East Asian</option><option>South Asian</option><option>Southeast Asian</option><option>Hispanic / Latino</option><option>Black / African descent</option><option>Indigenous / Native</option><option>Pacific Islander</option><option>White</option><option>Mixed / Multiracial</option>
+          </select>
+        </div>
+        <div class="fld"><label class="fld-lbl" data-t="endowmentLabel">Endowment</label><select class="fld-in"><option>Prefer not to say</option><option>Small</option><option>Average</option><option>Large</option><option>Extra Large</option></select></div>
+      </div>
+      <div class="toggle-row" style="margin-top:6px">
+        <span class="toggle-lbl">Show age on profile</span>
+        <label class="toggle-sw"><input type="checkbox" id="toggle-showage-d" checked><span class="toggle-track"></span></label>
+      </div>
+
+      <!-- Tribes -->
+      <div class="setup-section">Tribes</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Select all that apply</div>
+      <div class="fld"><label class="fld-lbl">I am</label><div class="tag-grid" id="tribes-iam-d"><div class="tag" onclick="toggleTag(this)">Bear</div><div class="tag" onclick="toggleTag(this)">Daddy</div><div class="tag" onclick="toggleTag(this)">Otter</div><div class="tag" onclick="toggleTag(this)">Jock</div><div class="tag" onclick="toggleTag(this)">Twink</div><div class="tag" onclick="toggleTag(this)">Muscle</div><div class="tag" onclick="toggleTag(this)">Rugged</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Geek</div><div class="tag" onclick="toggleTag(this)">Guy Next Door</div><div class="tag" onclick="toggleTag(this)">Trans</div><div class="tag" onclick="toggleTag(this)">Bi</div></div></div>
+      <div class="fld" style="margin-top:8px"><label class="fld-lbl">I'm into</label><div class="tag-grid" id="tribes-into-d"><div class="tag" onclick="toggleTag(this)">Bears</div><div class="tag" onclick="toggleTag(this)">Daddies</div><div class="tag" onclick="toggleTag(this)">Otters</div><div class="tag" onclick="toggleTag(this)">Jocks</div><div class="tag" onclick="toggleTag(this)">Twinks</div><div class="tag" onclick="toggleTag(this)">Muscle</div><div class="tag" onclick="toggleTag(this)">Rugged</div><div class="tag" onclick="toggleTag(this)">Leather</div><div class="tag" onclick="toggleTag(this)">Geeks</div><div class="tag" onclick="toggleTag(this)">All types</div></div></div>
+
+      <!-- Dating & Intimacy -->
+      <div class="setup-section" data-t="datingIntimacy">Dating & Intimacy</div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="relStatusLabel">Status</label><select class="fld-in"><option>Single</option><option>Open Relationship</option><option>Poly</option><option>Dating</option><option>Married</option><option>Ask Me</option></select></div>
+        <div class="fld"><label class="fld-lbl" data-t="positionLabel">Position</label><select class="fld-in"><option>Prefer not to say</option><option>Top</option><option>Bottom</option><option>Versatile</option><option>Versatile Top</option><option>Versatile Bottom</option><option>Side</option></select></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-lbl">Show position on profile</span>
+        <label class="toggle-sw"><input type="checkbox" id="toggle-showpos-d" checked><span class="toggle-track"></span></label>
+      </div>
+      <div class="fld" style="margin-top:8px"><label class="fld-lbl" data-t="lookingForLabel">Looking for</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Chat</div><div class="tag" onclick="toggleTag(this)">Friends</div><div class="tag" onclick="toggleTag(this)">No Strings</div><div class="tag" onclick="toggleTag(this)">FWB</div><div class="tag" onclick="toggleTag(this)">Dates</div><div class="tag" onclick="toggleTag(this)">Relationship</div><div class="tag" onclick="toggleTag(this)">Hookup</div></div></div>
+
+      <!-- Health -->
+      <div class="setup-section">Health</div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl" data-t="safetyPracticesLabel">Safety Practices</label><select class="fld-in"><option>Ask Me</option><option>Bareback</option><option>Safe</option></select></div>
+        <div class="fld"><label class="fld-lbl" data-t="preventionLabel">Prevention</label><select class="fld-in"><option>Ask Me</option><option>PrEP</option><option>PrEP + Doxy</option><option>None</option></select></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">HIV Status</label><select class="fld-in"><option>Prefer not to say</option><option>Negative</option><option>Negative on PrEP</option><option>Positive</option><option>Positive — Undetectable</option></select></div>
+        <div class="fld"><label class="fld-lbl">Last Tested</label><input class="fld-in" type="date" id="setup-lasttested-d"></div>
+      </div>
+      <div class="fld" style="margin-top:4px"><label class="fld-lbl">Vaccinations</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">COVID-19</div><div class="tag" onclick="toggleTag(this)">Monkeypox</div><div class="tag" onclick="toggleTag(this)">HPV</div><div class="tag" onclick="toggleTag(this)">Hepatitis A</div><div class="tag" onclick="toggleTag(this)">Hepatitis B</div><div class="tag" onclick="toggleTag(this)">Meningitis</div></div></div>
+
+      <!-- Social links -->
+      <div class="setup-section">Social Links</div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">Instagram</label><input class="fld-in" type="text" placeholder="@username"></div>
+        <div class="fld"><label class="fld-lbl">X / Twitter</label><input class="fld-in" type="text" placeholder="@handle"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label class="fld-lbl">TikTok</label><input class="fld-in" type="text" placeholder="@username"></div>
+        <div class="fld"><label class="fld-lbl">Bluesky</label><input class="fld-in" type="text" placeholder="handle.bsky.social"></div>
+      </div>
+      <div class="fld"><label class="fld-lbl">Website</label><input class="fld-in" type="url" placeholder="https://"></div>
+
+      <!-- Blocked users -->
+      <div class="setup-section" data-t="blockedUsersHeader">Blocked Users</div>
+      <div id="blocked-list-setup-d" class="blocked-list"><div class="blocked-empty" data-t="noBlocked">No blocked users</div></div>
+
+      <button class="btn-cta" style="margin-top:24px" onclick="goMain()" data-t="saveProfile">Save Profile</button>
     </div>
   </div>
 
   <div class="view active" id="view-main-d">
     <div id="m-cruise-d" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="ds-content-hdr">
-        <div><div class="ds-content-title">🔥 <span data-t="cruise">Cruise</span></div><div class="ds-content-sub" id="csub-d">Connecting to peers...</div></div>
+        <div>
+          <div class="ds-content-title">🔥 <span data-t="cruise">Cruise</span></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="ds-content-sub" id="csub-d" data-t="connectingPeers">Connecting to peers...</div>
+            <div class="explore-active-pill" id="explore-pill-d">🌍 <span id="explore-city-name-d">Exploring</span> <button class="explore-reset-btn" onclick="resetExploreLocation()">Reset</button></div>
+          </div>
+        </div>
         <div style="display:flex;gap:8px">
+          <button class="cvt-btn" onclick="openExploreModal()" style="width:auto;padding:6px 12px">🌐 <span data-t="explore">Explore</span></button>
           <button class="cvt-btn on" id="cvt-map-d" onclick="setSubView('d', 'map')" style="width:auto;padding:6px 12px">🗺️ <span data-t="mapView">Map</span></button>
           <button class="cvt-btn" id="cvt-grid-d" onclick="setSubView('d', 'grid')" style="width:auto;padding:6px 12px">⊞ <span data-t="gridView">Grid</span></button>
           <button class="cvt-btn" id="cvt-wall-d" onclick="setSubView('d', 'wall')" style="width:auto;padding:6px 12px">✍️ <span data-t="wallView">Wall</span></button>
@@ -833,7 +1156,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
       </div>
       <div id="v-map-d" class="map-wrap">
         <div id="bunk-map-d" style="width:100%;height:100%"></div>
-        <div class="map-count-badge"><span id="map-count-d">182</span> peers nearby</div>
+        <div class="map-count-badge"><span id="map-count-d">182</span> <span data-t="peersNearby">peers nearby</span></div>
         <div class="map-vis-toggle is-visible" id="mapvis-toggle-d" onclick="toggleMapVis('d')" style="position:absolute;bottom:16px;right:12px;z-index:500;display:flex;align-items:center;gap:7px;padding:7px 13px;background:rgba(8,10,15,.88);border:1px solid var(--border2);border-radius:22px;backdrop-filter:blur(10px);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace;">
           <div class="map-vis-dot" style="width:7px;height:7px;border-radius:50%;background:var(--cruise);box-shadow:0 0 6px var(--cruise)"></div><span id="mapvis-label-d">📍 Visible on map</span>
         </div>
@@ -869,7 +1192,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 
   <div class="view" id="view-events-d">
     <div class="ds-content-hdr">
-      <div><div class="ds-content-title">📅 Local Events</div></div>
+      <div><div class="ds-content-title">📅 <span data-t="localEvents">Local Events</span></div></div>
       <div style="display:flex;gap:8px">
         <button class="match-action-btn" style="width:auto;padding:6px 12px;margin:0" onclick="if(isGuest){showBanner('👻','Guest','Create a profile to post events');goSetup('d');}else{document.getElementById('create-event-modal').classList.add('open');}">＋ Create Event</button>
         <button class="match-action-btn" onclick="showNavD('main')" style="width:auto;padding:6px 12px;margin:0">✕ Close</button>
@@ -979,8 +1302,8 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
       <div class="event-detail-tags" id="evd-tags"></div>
       <button class="event-ticket-btn" id="evd-ticket" onclick="showBanner('🎟','Opening tickets','Redirecting to ticket gateway...');closeEventDetail()">🎟 Buy Tickets</button>
       <div class="event-detail-share">
-        <button class="event-share-btn" onclick="showBanner('👥','Shared','Event shared with connections')">Share with Friends</button>
-        <button class="event-share-btn" onclick="showBanner('❤️','Saved','Event added to your calendar')">Save Event</button>
+        <button class="event-share-btn" onclick="showBanner('👥','Shared','Event shared with connections')" data-t="shareWithFriends">Share with Friends</button>
+        <button class="event-share-btn" onclick="showBanner('❤️','Saved','Event added to your calendar')" data-t="saveEvent">Save Event</button>
       </div>
     </div>
   </div>
@@ -1001,7 +1324,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="modal-overlay" id="matches-modal" onclick="closeMatchesModal()">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="as-handle"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px">Your Matches</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px" data-t="yourMatches">Your Matches</div>
     <div class="modal-scroll" id="matches-modal-list" style="padding:10px 0"></div>
   </div>
 </div>
@@ -1009,7 +1332,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="modal-overlay" id="type-modal" onclick="closeTypeModal()">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="as-handle"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px">My Type Filters</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px" data-t="myTypeFilters">My Type Filters</div>
     <div class="modal-scroll">
       <div class="fld" style="margin-bottom:16px">
         <label class="fld-lbl">Max Distance: <span id="dist-lbl-type" style="color:var(--text)">5 km</span></label>
@@ -1027,7 +1350,7 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="modal-overlay" id="cruise-filter-modal" onclick="closeCruiseFilterModal()">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="as-handle"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px">Cruise Filters</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px" data-t="cruiseFiltersTitle">Cruise Filters</div>
     <div class="modal-scroll">
       <div class="fld" style="margin-bottom:16px"><label class="fld-lbl">Looking For</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)" data-t="chatTag">Chat</div><div class="tag" onclick="toggleTag(this)" data-t="friendsTag">Friends</div><div class="tag" onclick="toggleTag(this)" data-t="noStrings">No Strings</div><div class="tag" onclick="toggleTag(this)" data-t="fwb">FWB</div><div class="tag" onclick="toggleTag(this)" data-t="datesTag">Dates</div></div></div>
       <div class="fld" style="margin-bottom:16px"><label class="fld-lbl" data-t="positionLabel">Position</label><div class="tag-grid"><div class="tag" onclick="toggleTag(this)">Top</div><div class="tag" onclick="toggleTag(this)">Bottom</div><div class="tag" onclick="toggleTag(this)">Versatile</div><div class="tag" onclick="toggleTag(this)">Side</div></div></div>
@@ -1050,16 +1373,25 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 <div class="modal-overlay" id="create-event-modal" onclick="closeCreateEventModal()">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="as-handle"></div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px">Create Event</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center;margin-bottom:12px" data-t="createEventTitle">Create Event</div>
     <div class="modal-scroll">
-      <div class="fld" style="margin-bottom:12px"><label class="fld-lbl">Event Name</label><input class="fld-in" id="evt-name" type="text" placeholder="e.g. Dance Party"></div>
-      <div class="fld" style="margin-bottom:12px"><label class="fld-lbl">Description</label><input class="fld-in" id="evt-desc" type="text" placeholder="Tell people what to expect..."></div>
-      <div class="fld-row" style="margin-bottom:12px">
-        <div class="fld"><label class="fld-lbl">Location</label><input class="fld-in" id="evt-loc" type="text" placeholder="e.g. Church St"></div>
-        <div class="fld"><label class="fld-lbl">Date & Time</label><input class="fld-in" id="evt-date" type="text" placeholder="e.g. Tonight 10PM"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px">
+        <div class="event-photo-wrap" id="event-photo-wrap" onclick="document.getElementById('evt-photo-input').click()">
+          <div id="evt-photo-placeholder" style="font-size:32px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">📷</div>
+          <img id="evt-photo-img" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:12px" src="" alt="">
+          <div style="position:absolute;bottom:6px;right:8px;background:var(--cruise);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Tap to add event photo (optional)</div>
+        <input type="file" id="evt-photo-input" accept="image/*" style="display:none" onchange="handleEventPhoto(event)">
       </div>
-      <div class="fld" style="margin-bottom:20px"><label class="fld-lbl">Ticket URL</label><input class="fld-in" type="url" placeholder="https://..."></div>
-      <button class="btn-cta" onclick="submitEvent()">Post Event</button>
+      <div class="fld" style="margin-bottom:12px"><label class="fld-lbl" data-t="eventNameLabel">Event Name</label><input class="fld-in" id="evt-name" type="text" placeholder="e.g. Dance Party"></div>
+      <div class="fld" style="margin-bottom:12px"><label class="fld-lbl" data-t="eventDescLabel">Description</label><input class="fld-in" id="evt-desc" type="text" placeholder="Tell people what to expect..."></div>
+      <div class="fld-row" style="margin-bottom:12px">
+        <div class="fld"><label class="fld-lbl" data-t="eventLocLabel">Location</label><input class="fld-in" id="evt-loc" type="text" placeholder="e.g. Church St"></div>
+        <div class="fld"><label class="fld-lbl" data-t="eventDateLabel">Date & Time</label><input class="fld-in" id="evt-date" type="text" placeholder="e.g. Tonight 10PM"></div>
+      </div>
+      <div class="fld" style="margin-bottom:20px"><label class="fld-lbl" data-t="ticketUrlLabel">Ticket URL</label><input class="fld-in" type="url" placeholder="https://..."></div>
+      <button class="btn-cta" onclick="submitEvent()" data-t="postEvent">Post Event</button>
     </div>
   </div>
 </div>
@@ -1120,17 +1452,60 @@ select.fld-in{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   </div>
 </div>
 
+
+<!-- Moment Editor Modal -->
+<div class="modal-overlay" id="moment-editor-modal" onclick="closeMomentEditor()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:14px">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;text-align:center">✨ New Moment</div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;font-family:'DM Mono',monospace">Visible for 24 hours · P2P only</div>
+    <div class="moment-emoji-picker" id="moment-emoji-row">
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🌅</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🎉</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🏖️</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🍕</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🏋️</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🌈</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">🎵</span>
+      <span onclick="selectMomentEmoji(this)" style="cursor:pointer;font-size:28px;padding:6px;border-radius:8px">☕</span>
+    </div>
+    <div class="moment-preview" id="moment-preview" style="text-align:center;font-size:72px;min-height:80px;display:flex;align-items:center;justify-content:center">🌅</div>
+    <textarea class="fld-in" id="moment-caption" placeholder="Add a caption... (optional)" style="resize:none;height:72px;font-size:13px"></textarea>
+    <button class="btn-cta" onclick="postMoment()">Post Moment</button>
+    <button class="btn-ghost" onclick="closeMomentEditor()" style="margin-top:-8px">Cancel</button>
+  </div>
+</div>
+
 <script>
+// ── DATA INFRASTRUCTURE ──
 // ── DATA INFRASTRUCTURE ──
 let favorites = JSON.parse(localStorage.getItem('bunk_favorites') || '[]');
 
+// ── DATA LAYER ─────────────────────────────────────────────────
+const DB_VERSION = 1;
+function getProfile(id) { return profiles.find(p => p.id === id) || null; }
+function getAllProfiles(filter) { return filter ? profiles.filter(filter) : [...profiles]; }
+function getConversation(id) { return conversations.find(c => c.id === id) || null; }
+function getConversationsFor(profileId) { return conversations.filter(c => c.participants.some(p => p.id === profileId)); }
+
+// ── STORAGE VERSIONING ──────────────────────────────────────────
+(function migrateStorage() {
+  const storedVersion = parseInt(localStorage.getItem('bunk_db_version') || '0');
+  if(storedVersion < DB_VERSION) {
+    if(storedVersion === 0) {
+      console.log('[Bunk] Storage initialized at version', DB_VERSION);
+    }
+    localStorage.setItem('bunk_db_version', String(DB_VERSION));
+  }
+})();
+
+
 const profiles=[
-  {id:'p1',name:'Marco',age:29,body:'Athletic',height:"6'0\"",weight:'175 lbs',pos:'Versatile',dist:'0.1 km',endowment:'Large',status:'Single',safety:'Safe',prev:'PrEP',bio:'Freelance designer, dog parent, espresso snob.',tags:['Dates','Friends'],into:['Jocks'],emoji:'🧑',bg:'bg1',online:true},
-  {id:'p2',name:'Tyler',age:34,body:'Muscular',height:"5'11\"",weight:'210 lbs',pos:'Top',dist:'0.3 km',endowment:'Extra Large',status:'Open Relationship',safety:'Ask Me',prev:'PrEP + Doxy',bio:'PT by day, terrible cook by night. Bear-adjacent.',tags:['Hookups','Chat'],into:['Bears','Kink'],emoji:'🧔',bg:'bg2',online:true},
-  {id:'p3',name:'Seb',age:26,body:'Slim',height:"5'9\"",weight:'148 lbs',pos:'Bottom',dist:'0.4 km',endowment:'Average',status:'Single',safety:'Safe',prev:'None',bio:'PhD in urban planning. Overthink everything.',tags:['Friends','Dates'],into:['Twinks'],emoji:'👦',bg:'bg3',online:false},
-  {id:'p4',name:'Renaud',age:31,body:'Average',height:"6'1\"",weight:'180 lbs',pos:'Versatile',dist:'0.6 km',endowment:'Large',status:'Poly',safety:'Bareback',prev:'PrEP',bio:'French. Architecture. Good red wine. Bad at texting.',tags:['Dates','Chat'],into:['Daddies'],emoji:'🧑‍🦱',bg:'bg4',online:true},
-  {id:'p5',name:'Kwame',age:28,body:'Athletic',height:"6'2\"",weight:'190 lbs',pos:'Top',dist:'0.8 km',endowment:'Extra Large',status:'Dating',safety:'Safe',prev:'PrEP',bio:'Photographer. Night owl. Genuine connection first.',tags:['Friends','Relationship'],into:['Jocks'],emoji:'🧑‍🦲',bg:'bg5',online:true},
-  {id:'p6',name:'Luca',age:23,body:'Slim',height:"5'8\"",weight:'140 lbs',pos:'Bottom',dist:'1.0 km',endowment:'Average',status:'Single',safety:'Ask Me',prev:'Ask Me',bio:'Art student, barista, chaos gremlin.',tags:['Chat','Hookups'],into:['Twinks'],emoji:'🧒',bg:'bg6',online:true},
+  {id:'p1',name:'Marco',age:29,body:'Athletic',height:"6'0\"",weight:'175 lbs',pos:'Versatile',dist:'0.1 km',endowment:'Large',status:'Single',safety:'Safe',prev:'PrEP',bio:'Freelance designer, dog parent, espresso snob.',tags:['Dates','Friends'],into:['Jocks'],emoji:'🧑',bg:'bg1',online:true,_lat:40.710800,_lng:-73.998000},
+  {id:'p2',name:'Tyler',age:34,body:'Muscular',height:"5'11\"",weight:'210 lbs',pos:'Top',dist:'0.3 km',endowment:'Extra Large',status:'Open Relationship',safety:'Ask Me',prev:'PrEP + Doxy',bio:'PT by day, terrible cook by night. Bear-adjacent.',tags:['Hookups','Chat'],into:['Bears','Kink'],emoji:'🧔',bg:'bg2',online:true,_lat:40.717800,_lng:-74.013000},
+  {id:'p3',name:'Seb',age:26,body:'Slim',height:"5'9\"",weight:'148 lbs',pos:'Bottom',dist:'0.4 km',endowment:'Average',status:'Single',safety:'Safe',prev:'None',bio:'PhD in urban planning. Overthink everything.',tags:['Friends','Dates'],into:['Twinks'],emoji:'👦',bg:'bg3',online:false,_lat:40.708800,_lng:-74.009000},
+  {id:'p4',name:'Renaud',age:31,body:'Average',height:"6'1\"",weight:'180 lbs',pos:'Versatile',dist:'0.6 km',endowment:'Large',status:'Poly',safety:'Bareback',prev:'PrEP',bio:'French. Architecture. Good red wine. Bad at texting.',tags:['Dates','Chat'],into:['Daddies'],emoji:'🧑‍🦱',bg:'bg4',online:true,_lat:40.713800,_lng:-73.996000},
+  {id:'p5',name:'Kwame',age:28,body:'Athletic',height:"6'2\"",weight:'190 lbs',pos:'Top',dist:'0.8 km',endowment:'Extra Large',status:'Dating',safety:'Safe',prev:'PrEP',bio:'Photographer. Night owl. Genuine connection first.',tags:['Friends','Relationship'],into:['Jocks'],emoji:'🧑‍🦲',bg:'bg5',online:true,_lat:40.706800,_lng:-74.004000},
+  {id:'p6',name:'Luca',age:23,body:'Slim',height:"5'8\"",weight:'140 lbs',pos:'Bottom',dist:'1.0 km',endowment:'Average',status:'Single',safety:'Ask Me',prev:'Ask Me',bio:'Art student, barista, chaos gremlin.',tags:['Chat','Hookups'],into:['Twinks'],emoji:'🧒',bg:'bg6',online:true,_lat:40.720800,_lng:-74.011000},
   {id:'p7',name:'Diego',age:37,body:'Stocky',height:"5'10\"",weight:'205 lbs',pos:'Side',dist:'1.2 km',endowment:'Extra Large',status:'Married',safety:'Bareback',prev:'PrEP + Doxy',bio:'Chef. Tattooed. Swipe right for food arguments.',tags:['No Strings'],into:['Bears'],emoji:'👨',bg:'bg7',online:true},
   {id:'p8',name:'Noah',age:24,body:'Athletic',height:"6'1\"",weight:'175 lbs',pos:'Versatile',dist:'1.4 km',endowment:'Large',status:'Single',safety:'Safe',prev:'None',bio:'Tech bro by accident, artist by choice.',tags:['Chat','Dates'],into:['Jocks'],emoji:'🧑‍🦰',bg:'bg8',online:true},
   {id:'p9',name:'Liam',age:30,body:'Slim',height:"5'10\"",weight:'155 lbs',pos:'Bottom',dist:'1.5 km',endowment:'Average',status:'Dating',safety:'Safe',prev:'PrEP',bio:'Plant gay. Yoga on weekends.',tags:['Friends','Chat'],into:['Jocks'],emoji:'👱‍♂️',bg:'bg1',online:true},
@@ -1153,19 +1528,19 @@ const profiles=[
 ];
 
 const simProfiles = [
-  {id:'p1', name:'Marco', emoji:'🧑', source:'cruise'},
-  {id:'p2', name:'Tyler', emoji:'🧔', source:'cruise'},
-  {id:'p5', name:'Kwame', emoji:'🧑‍🦲', source:'match'},
-  {id:'p6', name:'Luca', emoji:'🧒', source:'match'},
+  {id:'p1', name:'Marco', emoji:'🧑', source:'cruise',_lat:40.710800,_lng:-73.998000},
+  {id:'p2', name:'Tyler', emoji:'🧔', source:'cruise',_lat:40.717800,_lng:-74.013000},
+  {id:'p5', name:'Kwame', emoji:'🧑‍🦲', source:'match',_lat:40.706800,_lng:-74.004000},
+  {id:'p6', name:'Luca', emoji:'🧒', source:'match',_lat:40.720800,_lng:-74.011000},
   {id:'p10', name:'Sam', emoji:'👨‍🦳', source:'cruise'},
   {id:'p13', name:'Chris', emoji:'🧑', source:'match'}
 ];
 
 // Re-structured conversations to support Arrays of participants for Group Chats
 let conversations = [
-  {id:'c1', participants:[{id:'p1', name:'Marco', emoji:'🧑'}], msg:'Hey! Saw you on Bunk', source:'cruise', type:'cruise', unread:false, time:'1m'},
-  {id:'c2', participants:[{id:'p5', name:'Kwame', emoji:'🧑‍🦲'}], msg:'It\'s a match!', source:'match', type:'match', unread:false, time:'5m'},
-  {id:'c3', participants:[{id:'p1', name:'Marco', emoji:'🧑'}, {id:'p2', name:'Tyler', emoji:'🧔'}], msg:'Tyler: Drinks tonight?', source:'group', type:'group', unread:true, time:'10m'}
+  {id:'c1', participants:[{id:'p1', name:'Marco', emoji:'🧑',_lat:40.710800,_lng:-73.998000}], msg:'Hey! Saw you on Bunk', source:'cruise', type:'cruise', unread:false, time:'1m'},
+  {id:'c2', participants:[{id:'p5', name:'Kwame', emoji:'🧑‍🦲',_lat:40.706800,_lng:-74.004000}], msg:'It\'s a match!', source:'match', type:'match', unread:false, time:'5m'},
+  {id:'c3', participants:[{id:'p1', name:'Marco', emoji:'🧑',_lat:40.710800,_lng:-73.998000}, {id:'p2', name:'Tyler', emoji:'🧔',_lat:40.717800,_lng:-74.013000}], msg:'Tyler: Drinks tonight?', source:'group', type:'group', unread:true, time:'10m'}
 ];
 
 const eventsData = [
@@ -1203,17 +1578,108 @@ let simActive=false;
 setTimeout(() => {
   document.getElementById('screen-splash').classList.remove('active');
   document.getElementById('screen-onboard').classList.add('active');
+  // If returning user, pre-fill email and show login sheet
+  const hasProfile = localStorage.getItem('bunk_has_profile');
+  if(hasProfile) {
+    const storedEmail = localStorage.getItem('bunk_email');
+    openLoginSheet();
+    if(storedEmail) {
+      setTimeout(() => {
+        const el = document.getElementById('login-sheet-email');
+        if(el) el.value = storedEmail;
+      }, 350);
+    }
+  }
 }, 1200);
 
 function goSetup() {
   isGuest = false;
+  closeLoginSheet();
   document.getElementById('global-entry').style.display = 'none';
   if(window.innerWidth < 768) showScreenM('screen-setup-m');
   else showNavD('setup');
 }
 
+// ── PHOTO GRID ────────────────────────────────────────────────────
+const profilePhotos = { m: Array(6).fill(null), d: Array(6).fill(null) };
+function triggerPhotoSlot(side, idx) {
+  document.getElementById('pfile-'+side+'-'+idx).click();
+}
+function handleSlotPhoto(event, side, idx) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    profilePhotos[side][idx] = e.target.result;
+    if(idx === 0) profilePhotoDataUrl = e.target.result; // keep compat
+    const slot = document.getElementById('pslot-'+side+'-'+idx);
+    slot.classList.add('filled');
+    slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">
+      <button class="photo-slot-rm" onclick="removeSlotPhoto(event,'${side}',${idx})">✕</button>
+      <input type="file" accept="image/*" style="display:none" id="pfile-${side}-${idx}" onchange="handleSlotPhoto(event,'${side}',${idx})">`;
+  };
+  reader.readAsDataURL(file);
+}
+function removeSlotPhoto(event, side, idx) {
+  event.stopPropagation();
+  profilePhotos[side][idx] = null;
+  if(idx === 0) profilePhotoDataUrl = null;
+  const slot = document.getElementById('pslot-'+side+'-'+idx);
+  slot.classList.remove('filled');
+  slot.innerHTML = `<span class="photo-slot-icon">${idx===0?'📷':'＋'}</span><input type="file" accept="image/*" style="display:none" id="pfile-${side}-${idx}" onchange="handleSlotPhoto(event,'${side}',${idx})">`;
+}
+
+// ── BIRTHDAY & CHAR COUNTER ───────────────────────────────────────
+function calcAge(side) {
+  const dob = document.getElementById('setup-dob-'+side).value;
+  if(!dob) return;
+  const today = new Date(), birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if(m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  document.getElementById('setup-age-display-'+side).textContent = age >= 18 ? age : '⚠ Must be 18+';
+}
+function updateCharCount(inputId, countId, max) {
+  const el = document.getElementById(inputId);
+  const cEl = document.getElementById(countId);
+  if(el && cEl) {
+    cEl.textContent = el.value.length;
+    cEl.style.color = el.value.length > max * 0.9 ? 'var(--cruise)' : '';
+  }
+}
+
+// ── MEASUREMENT SLIDERS ───────────────────────────────────────────
+function cmToFtIn(cm) {
+  const totalIn = Math.round(cm / 2.54);
+  return `${Math.floor(totalIn / 12)}'${totalIn % 12}"`;
+}
+function updateMeasure(type, side) {
+  if(type === 'height') {
+    const cm = parseInt(document.getElementById('height-slider-'+side).value);
+    document.getElementById('height-display-'+side).textContent = `${cmToFtIn(cm)} · ${cm} cm`;
+  } else {
+    const lbs = parseInt(document.getElementById('weight-slider-'+side).value);
+    const kg  = Math.round(lbs * 0.4536);
+    document.getElementById('weight-display-'+side).textContent = `${lbs} lbs · ${kg} kg`;
+  }
+}
+
+function saveProfileCredentials() {
+  // Check both mobile (#setup-email) and desktop (#setup-email-d) fields
+  const emailEl = document.getElementById('setup-email-d') || document.getElementById('setup-email');
+  const passEl  = document.getElementById('setup-password-d') || document.getElementById('setup-password');
+  if(emailEl && emailEl.value) {
+    localStorage.setItem('bunk_email', emailEl.value.trim().toLowerCase());
+    if(passEl && passEl.value) localStorage.setItem('bunk_pass_hash', btoa(passEl.value + 'bunk_salt'));
+    localStorage.setItem('bunk_has_profile', '1');
+  } else {
+    // Still mark profile created even without email (guest-to-user upgrade path)
+    localStorage.setItem('bunk_has_profile', '1');
+  }
+}
 function goMain(guestFlag=false) {
   if(guestFlag) isGuest = true;
+  if(!guestFlag) saveProfileCredentials();
+  closeLoginSheet();
   document.getElementById('global-entry').style.display = 'none';
   if(window.innerWidth < 768) {
     showNavM('main');
@@ -1223,6 +1689,8 @@ function goMain(guestFlag=false) {
     renderWall('d');
   }
   startSimulation();
+  // Request push notification permission after entering the app
+  setTimeout(requestNotifPermission, 2000);
 }
 
 function showScreenM(id) {
@@ -1328,6 +1796,15 @@ function notifyUser(profileId, source, msgText) {
     });
   }
   renderInbox('m', 'all'); renderInbox('d', 'all');
+
+  // Push notification — fires when tab is hidden or inbox is not the active view
+  if(p) {
+    const inboxVisible = document.querySelector('#screen-inbox-m.active') ||
+                         document.querySelector('#view-inbox-d.active');
+    if(document.hidden || !inboxVisible) {
+      notifyIncomingMsg(p.name, msgText, conv?.id || 'new');
+    }
+  }
 }
 
 // ── LEAFLET MAP ──
@@ -1346,10 +1823,178 @@ function popupHTML(p){
     </div>
     <div class="mp-bio">${p.bio}</div>
     <div class="mp-actions">
-      <button class="mp-btn mp-btn-wave" onclick="showBanner('👋', 'Wave sent!', 'You waved at ${p.name}')">👋 Wave</button>
+      <button class="mp-btn mp-btn-wave" onclick="showBanner('👋', t('waveSent'), 'You waved at ${p.name}')">👋 ${t('wave')}</button>
       <button class="mp-btn mp-btn-msg" onclick="openProfileFromMap('${p.id}')">Profile →</button>
     </div>
   </div>`;
+}
+
+
+
+// ── AUTH ────────────────────────────────────────────────────
+function showLogin() {
+  openLoginSheet();
+}
+function showOnboard() {
+  closeLoginSheet();
+  document.getElementById('global-entry').style.display = 'flex';
+  document.getElementById('screen-onboard').classList.add('active');
+}
+function openLoginSheet() {
+  document.getElementById('login-sheet').classList.add('open');
+  setTimeout(() => { const el = document.getElementById('login-sheet-email'); if(el) el.focus(); }, 300);
+}
+function closeLoginSheet() {
+  document.getElementById('login-sheet').classList.remove('open');
+}
+function doLogin() {
+  const email = (document.getElementById('login-sheet-email') || document.getElementById('login-email')).value.trim().toLowerCase();
+  const pass = (document.getElementById('login-sheet-password') || document.getElementById('login-password')).value;
+  const errEl = document.getElementById('login-sheet-error') || document.getElementById('login-error');
+  if(!email || !pass) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.classList.add('show'); return;
+  }
+  const storedEmail = localStorage.getItem('bunk_email');
+  const storedHash = localStorage.getItem('bunk_pass_hash');
+  if(!storedEmail) {
+    errEl.textContent = 'No account found. Create a profile first.';
+    errEl.classList.add('show'); return;
+  }
+  if(email !== storedEmail || btoa(pass + 'bunk_salt') !== storedHash) {
+    errEl.textContent = 'Incorrect email or password.';
+    errEl.classList.add('show');
+    document.getElementById('login-password').value = '';
+    return;
+  }
+  errEl.classList.remove('show');
+  isGuest = false;
+  closeLoginSheet();
+  document.getElementById('global-entry').style.display = 'none';
+  if(window.innerWidth < 768) { showNavM('main'); renderWall('m'); }
+  else { showNavD('main'); renderWall('d'); }
+  startSimulation();
+}
+function forgotPassword() {
+  showBanner('🔑', 'Password Reset', 'P2P mode stores credentials locally — check your saved passwords or create a new profile.');
+}
+
+// ── EXPLORE LOCATION ──────────────────────────────────────────
+const EXPLORE_CITIES = [
+  {flag:'📍', name:'My Location',    sub:'Current location',        lat:null, lng:null,    count:null, isCurrent:true},
+  {flag:'🇨🇦', name:'Montréal',       sub:'Quebec, Canada',          lat:45.5017, lng:-73.5673, count:341},
+  {flag:'🇺🇸', name:'New York',       sub:'New York, USA',           lat:40.7128, lng:-74.0060, count:892},
+  {flag:'🇬🇧', name:'London',         sub:'England, UK',             lat:51.5074, lng:-0.1278,  count:1204},
+  {flag:'🇫🇷', name:'Paris',          sub:'Île-de-France, France',   lat:48.8566, lng:2.3522,   count:678},
+  {flag:'🇧🇷', name:'São Paulo',      sub:'Brazil',                  lat:-23.5505, lng:-46.6333,count:519},
+  {flag:'🇦🇺', name:'Sydney',         sub:'New South Wales, AU',     lat:-33.8688, lng:151.2093,count:423},
+  {flag:'🇩🇪', name:'Berlin',         sub:'Germany',                 lat:52.5200, lng:13.4050,  count:731},
+  {flag:'🇲🇽', name:'Mexico City',    sub:'Mexico',                  lat:19.4326, lng:-99.1332, count:388},
+  {flag:'🇳🇱', name:'Amsterdam',      sub:'Netherlands',             lat:52.3676, lng:4.9041,   count:512},
+  {flag:'🇿🇦', name:'Cape Town',      sub:'South Africa',            lat:-33.9249, lng:18.4241, count:187},
+  {flag:'🇯🇵', name:'Tokyo',          sub:'Japan',                   lat:35.6762, lng:139.6503, count:644},
+  {flag:'🇪🇸', name:'Barcelona',      sub:'Catalonia, Spain',        lat:41.3851, lng:2.1734,   count:489},
+  {flag:'🇦🇷', name:'Buenos Aires',   sub:'Argentina',               lat:-34.6037, lng:-58.3816,count:296},
+  {flag:'🇺🇸', name:'San Francisco',  sub:'California, USA',         lat:37.7749, lng:-122.4194,count:567},
+  {flag:'🇨🇦', name:'Toronto',        sub:'Ontario, Canada',         lat:43.6532, lng:-79.3832, count:312},
+  {flag:'🇺🇸', name:'Chicago',        sub:'Illinois, USA',           lat:41.8781, lng:-87.6298, count:448},
+  {flag:'🇧🇪', name:'Brussels',       sub:'Belgium',                 lat:50.8503, lng:4.3517,   count:223},
+  {flag:'🇸🇪', name:'Stockholm',      sub:'Sweden',                  lat:59.3293, lng:18.0686,  count:198},
+  {flag:'🇵🇹', name:'Lisbon',         sub:'Portugal',                lat:38.7169, lng:-9.1395,  count:265},
+];
+
+let _exploreLat = null;
+let _exploreLng = null;
+let _exploreCityName = null;
+let _userLat = BASE_LAT;
+let _userLng = BASE_LNG;
+
+function openExploreModal() {
+  const modal = document.getElementById('explore-modal');
+  if(!modal) return;
+  document.getElementById('explore-search-input').value = '';
+  renderExploreCities(EXPLORE_CITIES);
+  modal.classList.add('open');
+}
+function closeExploreModal() {
+  const modal = document.getElementById('explore-modal');
+  if(modal) modal.classList.remove('open');
+}
+function renderExploreCities(list) {
+  const el = document.getElementById('explore-cities-list');
+  if(!el) return;
+  el.innerHTML = list.map(c => {
+    const isCur = c.isCurrent;
+    const isActive = !isCur && _exploreCityName === c.name;
+    return `<div class="explore-city-row${isCur?' current-loc':''}${isActive?' current-loc':''}" onclick="${isCur?'resetExploreLocation()':'selectExploreCity('+JSON.stringify(c.name)+','+c.lat+','+c.lng+')'}">
+      <div class="explore-city-flag">${c.flag}</div>
+      <div class="explore-city-info">
+        <div class="explore-city-name">${c.name}</div>
+        <div class="explore-city-sub">${c.sub}</div>
+      </div>
+      <div class="explore-city-count">
+        ${isCur
+          ? '<div class="explore-city-count-n" style="color:var(--match)">📍</div><div class="explore-city-count-l">My location</div>'
+          : `<div class="explore-city-count-n">${c.count}</div><div class="explore-city-count-l">nearby</div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+function filterExploreCities(q) {
+  const filtered = q.trim()
+    ? EXPLORE_CITIES.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.sub.toLowerCase().includes(q.toLowerCase()))
+    : EXPLORE_CITIES;
+  renderExploreCities(filtered);
+}
+function selectExploreCity(name, lat, lng) {
+  _exploreCityName = name;
+  _exploreLat = lat;
+  _exploreLng = lng;
+  closeExploreModal();
+  // Update explore pills
+  ['m','d'].forEach(s => {
+    const pill = document.getElementById('explore-pill-'+s);
+    const nameEl = document.getElementById('explore-city-name-'+s);
+    if(pill) pill.classList.add('show');
+    if(nameEl) nameEl.textContent = name;
+  });
+  // Move the maps to new location
+  _teleportMaps(lat, lng);
+  showBanner('🌍', 'Exploring ' + name, 'Showing users in ' + name);
+}
+function resetExploreLocation() {
+  _exploreCityName = null;
+  _exploreLat = null;
+  _exploreLng = null;
+  ['m','d'].forEach(s => {
+    const pill = document.getElementById('explore-pill-'+s);
+    if(pill) pill.classList.remove('show');
+  });
+  _teleportMaps(_userLat, _userLng);
+  showBanner('📍', 'Back home', 'Showing your local area');
+}
+function _teleportMaps(lat, lng) {
+  [mapM, mapD].forEach((map, idx) => {
+    if(!map) return;
+    const suffix = idx === 0 ? 'm' : 'd';
+    map.setView([lat, lng], 14);
+    // Remove old peer markers and redraw around new location
+    map.eachLayer(layer => {
+      if(layer instanceof L.Marker && layer !== meMarkerRef) {
+        map.removeLayer(layer);
+      }
+    });
+    profiles.slice(0,8).forEach(p => {
+      const plat = lat + (Math.random()-0.5)*0.012;
+      const plng = lng + (Math.random()-0.5)*0.012;
+      const icon = L.divIcon({className:'',html:peerMarkerHTML(p),iconSize:[48,48],iconAnchor:[24,24]});
+      const marker = L.marker([plat,plng],{icon}).addTo(map);
+      marker.bindPopup(popupHTML(p),{maxWidth:240,minWidth:220});
+      marker.on('click',()=>{ if(suffix==='m'){curM=p;}else{curD=p;} });
+    });
+    map.invalidateSize();
+  });
 }
 
 function initMap(containerId, suffix){
@@ -1400,7 +2045,7 @@ function initMap(containerId, suffix){
   // Try real geolocation, fall back to BASE_LAT/LNG
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(
-      pos => { drawMarkers(pos.coords.latitude, pos.coords.longitude); },
+      pos => { _userLat=pos.coords.latitude; _userLng=pos.coords.longitude; drawMarkers(_userLat, _userLng); },
       ()   => { drawMarkers(BASE_LAT, BASE_LNG); },
       {timeout:6000, maximumAge:60000, enableHighAccuracy:false}
     );
@@ -1635,12 +2280,12 @@ function renderEvents(s) {
   if(eventsData.length===0){ feed.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">🏜️ No events found nearby.</div>'; return;}
   feed.innerHTML = eventsData.map((e,i) => `
     <div class="event-card" onclick="openEventDetail(${i})" style="animation-delay:${i*.06}s">
-      <div class="event-img">${e.img}</div>
+      <div class="event-img">${e.hasPhoto ? `<img src="${e.img}" style="width:100%;height:100%;object-fit:cover" alt="">` : e.img}</div>
       <div class="event-body">
         <div class="event-title">${e.title}</div>
         <div class="event-meta"><span>📍 ${e.loc} · ${e.dist}</span><span>📅 ${e.date}</span></div>
         <div class="event-desc">${e.desc}</div>
-        <div class="event-btn">View Details →</div>
+        <div class="event-btn">${t('viewDetails')}</div>
       </div>
     </div>
   `).join('');
@@ -1667,7 +2312,13 @@ function submitEvent() {
   const l = document.getElementById('evt-loc').value || 'Local';
   const d = document.getElementById('evt-date').value || 'TBA';
   const desc = document.getElementById('evt-desc').value || '';
-  eventsData.unshift({title:n, loc:l, dist:'0.1 km', date:d, img:'🎉', desc:desc});
+  eventsData.unshift({title:n, loc:l, dist:'0.1 km', date:d, img: eventPhotoDataUrl || '🎉', desc:desc, hasPhoto: !!eventPhotoDataUrl});
+  // Reset photo for next time
+  eventPhotoDataUrl = null;
+  const img = document.getElementById('evt-photo-img');
+  const ph = document.getElementById('evt-photo-placeholder');
+  if(img){ img.style.display='none'; img.src=''; }
+  if(ph) ph.style.display='flex';
   closeCreateEventModal();
   renderEvents('m'); renderEvents('d');
   showBanner('✅', 'Event Created', n + ' is now live.');
@@ -1707,6 +2358,7 @@ function renderInbox(s, filter) {
           <span class="inbox-time">${c.time||'1h'}</span>
         </div>
         <div class="inbox-preview ${c.unread?'unread':''}">${c.msg}</div>
+                <div class="msg-receipt">${c.unread?'':'✓✓'}</div>
         <div class="inbox-source-label ${isGroup ? 'group-label' : c.type+'-label'}">${isGroup ? 'GROUP' : c.type.toUpperCase()}</div>
       </div>
       <div class="inbox-del" onmousedown="startHold('${s}')" onmouseup="endHold()" onmouseleave="endHold()" ontouchstart="startHold('${s}')" ontouchend="endHold()" onclick="deleteMsg('${s}', '${c.id}')">✕</div>
@@ -1761,25 +2413,231 @@ function openChat(s, convId) {
   renderInbox('m', 'all'); renderInbox('d', 'all'); 
 }
 
+// ── P2P RECEIPT ENGINE ────────────────────────────────────────────
+// States: queued → buffered → delivered → read
+// queued   = locally queued, uploading to P2P relay
+// buffered = stored on relay (48h window), awaiting recipient login
+// delivered= recipient came online and pulled from relay
+// read     = recipient opened this conversation
+//
+// In production: relay pings sender via Web Push when state changes.
+// Here we simulate realistic timing.
+
+const RECEIPT_ICONS = {
+  queued:    { icon: '⏺',  label: 'Sending…' },
+  buffered:  { icon: '🕐', label: 'Waiting for recipient' },
+  delivered: { icon: '✓✓', label: 'Delivered' },
+  read:      { icon: '✓✓', label: 'Read' }
+};
+
+function makeReceiptSpan(state) {
+  const { icon } = RECEIPT_ICONS[state];
+  return `<span class="receipt ${state}" title="${RECEIPT_ICONS[state].label}">${icon}</span>`;
+}
+
+// simulateReceipt: drives a message element through the 4 states.
+// isRecipientOnline: if true, skip buffered and go straight to delivered.
+function simulateReceipt(msgEl, isRecipientOnline = true) {
+  const tEl = msgEl.querySelector('.msg-t');
+  if(!tEl) return;
+
+  // 1. Queued (instant)
+  tEl.insertAdjacentHTML('beforeend', makeReceiptSpan('queued'));
+
+  // 2. Buffered (~500ms — relay acknowledged)
+  setTimeout(() => {
+    const r = tEl.querySelector('.receipt');
+    if(!r) return;
+    if(isRecipientOnline) {
+      // Skip buffered, go straight to delivered
+      r.className = 'receipt delivered';
+      r.textContent = '✓✓';
+    } else {
+      r.className = 'receipt buffered';
+      r.textContent = '🕐';
+      r.title = 'Waiting for recipient — stored for up to 48h';
+    }
+  }, 500);
+
+  if(isRecipientOnline) {
+    // 3. Read (~2s — simulated reply triggers read state)
+    setTimeout(() => {
+      const r = tEl.querySelector('.receipt');
+      if(r) { r.className = 'receipt read'; }
+    }, 2200);
+  }
+  // If offline, buffered state persists — in production the relay
+  // would push an update when recipient logs in.
+}
+
+// ── PUSH NOTIFICATIONS ────────────────────────────────────────────
+// Uses the browser Notifications API — zero server cost.
+// In production: Web Push (VAPID) via Cloudflare Worker + KV (~$5/mo).
+
+// ── PWA MANIFEST (injected as blob — single file architecture) ────
+(function injectManifest() {
+  const manifest = {
+    name: 'Bunk', short_name: 'Bunk',
+    description: 'P2P gay social. Private by design.',
+    start_url: '.', display: 'standalone',
+    background_color: '#080a0f', theme_color: '#080a0f',
+    orientation: 'portrait-primary',
+    icons: [
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23080a0f'/><text x='50%25' y='54%25' font-size='120' text-anchor='middle' dominant-baseline='middle' fill='%23ff4500' font-family='Arial Black,sans-serif' font-weight='900'>B</text></svg>", sizes: '192x192', type: 'image/svg+xml' },
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23080a0f'/><text x='50%25' y='54%25' font-size='320' text-anchor='middle' dominant-baseline='middle' fill='%23ff4500' font-family='Arial Black,sans-serif' font-weight='900'>B</text></svg>", sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const el = document.getElementById('pwa-manifest');
+  if(el) el.href = URL.createObjectURL(blob);
+})();
+
+// ── INLINE SERVICE WORKER (required for iOS push + offline) ───────
+// On a real server sw.js lives at the root — same code, no blob needed.
+const SW_SRC = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+self.addEventListener('push', e => {
+  const d = e.data ? e.data.json() : {};
+  e.waitUntil(self.registration.showNotification(d.title || 'Bunk', {
+    body: d.body || 'New message',
+    tag:  d.tag  || 'bunk',
+    icon: d.icon || '',
+    badge: d.badge || '',
+    data: { url: d.url || '/' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(list => {
+    for(const c of list) if(c.url && 'focus' in c) return c.focus();
+    if(clients.openWindow) return clients.openWindow('/');
+  }));
+});
+`;
+
+let _swRegistration = null;
+
+async function registerSW() {
+  if(!('serviceWorker' in navigator)) return;
+  try {
+    // Blob URL SW works for local notifications; for real Web Push
+    // a server-hosted sw.js at '/' is needed (same code above).
+    const blob = new Blob([SW_SRC], { type: 'application/javascript' });
+    const url  = URL.createObjectURL(blob);
+    _swRegistration = await navigator.serviceWorker.register(url);
+    console.log('[Bunk] Service worker registered');
+  } catch(e) {
+    console.log('[Bunk] SW registration skipped:', e.message);
+  }
+}
+registerSW();
+
+// ── PUSH NOTIFICATIONS ────────────────────────────────────────────
+let _notifPermission = 'default';
+
+const NOTIF_ICON = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23080a0f'/><text x='50%25' y='54%25' font-size='38' text-anchor='middle' dominant-baseline='middle' fill='%23ff4500' font-family='Arial Black,sans-serif' font-weight='900'>B</text></svg>";
+
+function requestNotifPermission() {
+  if(!('Notification' in window)) return;
+  // On iOS: only works if running as installed PWA (home screen)
+  if(isIOSBrowser()) { showA2HSBanner(); return; }
+  if(Notification.permission === 'granted') { _notifPermission = 'granted'; return; }
+  if(Notification.permission !== 'denied') {
+    Notification.requestPermission().then(p => { _notifPermission = p; });
+  }
+}
+
+async function pushNotif(title, body, tag) {
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opts = { body, tag: tag || 'bunk', icon: NOTIF_ICON, silent: false };
+  try {
+    // Prefer SW showNotification — required on iOS PWA, also works everywhere else
+    const reg = _swRegistration || (await navigator.serviceWorker?.ready);
+    if(reg?.showNotification) {
+      await reg.showNotification(title, opts);
+    } else {
+      // Desktop fallback (Chrome/Firefox without SW ready)
+      const n = new Notification(title, opts);
+      n.onclick = () => { window.focus(); n.close(); };
+      setTimeout(() => n.close(), 6000);
+    }
+  } catch(e) {
+    // Last-resort fallback
+    try { new Notification(title, opts); } catch(_) {}
+  }
+}
+
+// Called when an incoming message arrives in a non-active conversation
+function notifyIncomingMsg(senderName, preview, convId) {
+  const body = preview.length > 60 ? preview.slice(0,57)+'…' : preview;
+  pushNotif(`Bunk · ${senderName}`, body, 'bunk-msg-'+convId);
+}
+
+// ── iOS / Add-to-Home-Screen detection ───────────────────────────
+function isIOSBrowser() {
+  // iOS Safari in browser (not installed PWA)
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !isInstalledPWA();
+}
+function isInstalledPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+function showA2HSBanner() {
+  const b = document.getElementById('a2hs-banner');
+  if(b && !sessionStorage.getItem('a2hs_dismissed')) b.classList.add('show');
+}
+function dismissA2HS() {
+  document.getElementById('a2hs-banner')?.classList.remove('show');
+  sessionStorage.setItem('a2hs_dismissed', '1');
+}
+// Show A2HS nudge automatically on iOS in-browser after 4s
+if(isIOSBrowser()) setTimeout(showA2HSBanner, 4000);
+
 function sendMsg(s) {
-  const inp=document.getElementById(`cin-${s}`), txt=inp.value.trim(); if(!txt)return;
+  const inp=document.getElementById(`cin-${s}`), txt=inp.value.trim(); if(!txt) return;
   const msgs=document.getElementById(`cmsgs-${s}`);
-  msgs.innerHTML += `<div class="msg me ${activeChatSource==='match'?'match-msg':''}"><div class="bubble">${txt}</div><div class="msg-t">just now</div></div>`;
-  msgs.scrollTop=msgs.scrollHeight; inp.value='';
-  
+
   const conv = conversations.find(c => c.id === activeChatId);
-  if(conv) {
-    conv.msg = 'You: ' + txt;
-    conv.time = 'just now';
+  // Determine if recipient is currently "online" for this demo.
+  // In production: relay reports online status via WebSocket/SSE.
+  const recipientOnline = conv ? (conv.participants[0]?.online !== false) : true;
+
+  const msgEl = document.createElement('div');
+  msgEl.className = `msg me ${activeChatSource==='match'?'match-msg':''}`;
+  msgEl.innerHTML = `<div class="bubble">${txt}</div><div class="msg-t"><span class="msg-time">just now</span></div>`;
+  msgs.appendChild(msgEl);
+  simulateReceipt(msgEl, recipientOnline);
+  msgs.scrollTop=msgs.scrollHeight; inp.value='';
+
+  if(conv) { conv.msg = 'You: ' + txt; conv.time = 'just now'; }
+
+  if(!recipientOnline) {
+    // Show a subtle in-app banner explaining buffered state
+    showBanner('🕐', 'Message buffered', 'Stored on relay — will deliver when they come online (up to 48h)');
+    return; // no simulated reply from offline user
   }
 
-  setTimeout(()=>{
-    const replyName = conv.participants.length > 1 ? conv.participants[0].name + ': ' : '';
-    msgs.innerHTML += `<div class="msg them"><div class="bubble">${replyName}${['haha yeah 😄',"okay now I'm curious 👀",'same tbh','lol yes exactly','tell me more','oof relatable'][Math.floor(Math.random()*6)]}</div><div class="msg-t">just now</div></div>`;
+  setTimeout(() => showTypingIndicator(s), 600);
+
+  setTimeout(() => {
+    const replyName = conv && conv.participants.length > 1 ? conv.participants[0].name + ': ' : '';
+    const replies = ['haha yeah 😄', "okay now I'm curious 👀", 'same tbh', 'lol yes exactly', 'tell me more', 'oof relatable'];
+    const replyText = replies[Math.floor(Math.random() * replies.length)];
+
+    const replyEl = document.createElement('div');
+    replyEl.className = 'msg them';
+    replyEl.innerHTML = `<div class="bubble">${replyName}${replyText}</div><div class="msg-t"><span class="msg-time">just now</span></div>`;
+    msgs.appendChild(replyEl);
     msgs.scrollTop=msgs.scrollHeight;
-    if(conv) conv.msg = 'New message...';
+    if(conv) conv.msg = replyText;
     renderInbox('m','all'); renderInbox('d','all');
-  },1000);
+
+    // Fire push notification if this chat is not currently in focus (tab hidden)
+    if(document.hidden && conv) {
+      notifyIncomingMsg(conv.participants[0]?.name || 'Someone', replyText, conv.id);
+    }
+  }, 1800);
 }
 
 // ── ALBUMS ──
@@ -1868,8 +2726,9 @@ function sendCameraRollPhoto(event){
     const msgs = document.getElementById(`cmsgs-${s}`); if(!msgs) return;
     const d = document.createElement('div');
     d.className = 'msg me';
-    d.innerHTML = `<div class="photo-bubble"><img class="photo-bubble-img real-photo" src="${dataUrl}" alt="Photo"></div><div class="msg-t">just now</div>`;
+    d.innerHTML = `<div class="photo-bubble"><img class="photo-bubble-img real-photo" src="${dataUrl}" alt="Photo"></div><div class="msg-t"><span class="msg-time">just now</span></div>`;
     msgs.appendChild(d);
+    simulateReceipt(d);
     msgs.scrollTop = msgs.scrollHeight;
     renderInbox('m','all'); renderInbox('d','all');
   };
@@ -1897,8 +2756,9 @@ function shareAlbum(s, id){
       <div class="alb-bub-thumb">${alb.photos.slice(0,4).map(p=>`<div class="alb-bub-cell">${p}</div>`).join('')}</div>
       <div class="alb-bub-info"><span class="alb-bub-icon">📸</span><span class="alb-bub-name">${alb.name}</span><span class="alb-bub-count">${alb.count} photos</span></div>
       <div class="alb-bub-p2p">🔒 P2P transfer · tap to open</div>
-    </div><div class="msg-t">delivered ✓</div>`;
+    </div><div class="msg-t"><span class="msg-time">just now</span></div>`;
   msgs.appendChild(d);
+  simulateReceipt(d);
   msgs.scrollTop=msgs.scrollHeight;
   renderInbox('m','all'); renderInbox('d','all');
 }
@@ -1912,8 +2772,9 @@ function sharePhoto(s, albumId, photoIdx){
   const msgs=document.getElementById(`cmsgs-${s}`); if(!msgs) return;
   const d=document.createElement('div');
   d.className='msg me';
-  d.innerHTML=`<div class="photo-bubble"><div class="photo-bubble-img">${photo}</div><div class="photo-bubble-caption">From <em>${alb.name}</em></div></div><div class="msg-t">just now</div>`;
+  d.innerHTML=`<div class="photo-bubble"><div class="photo-bubble-img">${photo}</div><div class="photo-bubble-caption">From <em>${alb.name}</em></div></div><div class="msg-t"><span class="msg-time">just now</span></div>`;
   msgs.appendChild(d);
+  simulateReceipt(d);
   msgs.scrollTop=msgs.scrollHeight;
   renderInbox('m','all'); renderInbox('d','all');
 }
@@ -1990,6 +2851,21 @@ function addGroupMember(profileId) {
   openChat(window.innerWidth < 768 ? 'm' : 'd', newConvId);
 }
 
+
+let eventPhotoDataUrl = null;
+function handleEventPhoto(event) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    eventPhotoDataUrl = e.target.result;
+    const img = document.getElementById('evt-photo-img');
+    const ph = document.getElementById('evt-photo-placeholder');
+    if(img) { img.src = eventPhotoDataUrl; img.style.display = 'block'; }
+    if(ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
 function closeCreateEventModal() { document.getElementById('create-event-modal').classList.remove('open'); }
 
 // Action Sheet handlers
@@ -2023,7 +2899,7 @@ const STRINGS = {
     myMatches:'My Matches', noMatches:'Keep swiping to find matches',
     discover:'Discover', cruiseMatch:'Cruise / Match', myProfile:'My Profile', account:'Account', connect:'Connect',
     noMoreProfiles:'No more profiles nearby', swipeAgain:'Swipe Again',
-    addMoment:'+ Add', addToGroupTitle:'Add to Group Chat', ageLabel:'Age', ageRangeLabel:'Age Range', albumNameLabel:'Album name', all:'All', applyFilters:'Apply Filters', askMe:'Ask Me', athletic:'Athletic', bareback:'Bareback', bioLabel:'Bio', blockedUsersHeader:'Blocked Users', bodyLabel:'Body Type', bottom:'Bottom', buyTickets:'🎟 Buy Tickets', cameraRoll:'Camera Roll', chatTag:'Chat', createBtn:'Create', cruiseFiltersTitle:'Cruise Filters', datesTag:'Dates', dating:'Dating', datingIntimacy:'Dating & Intimacy', e2eEncrypted:'🔒 E2E encrypted', endowmentLabel:'Endowment', ethnicityLabel:'Ethnicity', eventDateLabel:'Date & Time', eventDescLabel:'Description', eventLocLabel:'Location', eventNameLabel:'Event Name', eventsFilter:'🎟 Events', expires24h:'24 hours', expires7d:'7 days', expiresNever:'Never', extraLarge:'Extra Large', friendsTag:'Friends', fromDevice:'Choose a photo from your device', fwb:'FWB', genderLabel:'Gender', groupsFilter:'👥 Groups', heightLabel:'Height', locationFuzzy:'Location fuzzy · ±300m', lookingForLabel:'Looking for', man:'Man', married:'Married', maxDistanceLabel:'Max Distance:', maxParticipants:'Max 5 participants for P2P relay', momentExpires:'Expires in 24h', moments:'Moments', muscular:'Muscular', mutualOptIn:'Mutual opt-in dating', myTypeFilters:'My Type Filters', nameLabel:'Name', newAlbumBtn:'＋ New Album', newAlbumTitle:'New Album', nextProfile:'Next', noMethod:'None', noMoments:'No moments yet', noStrings:'No Strings', nonbinary:'Non-binary', openRelationship:'Open Relationship', optionsTitle:'Options', orFromAlbums:'or from your albums', p2pReady:'🟢 P2P transfer ready', p2pRelay:'P2P relay', poly:'Poly', positionLabel:'Position', postEvent:'Post Event', postMoment:'Post Moment', preferNotToSay:'Prefer not to say', prep:'PrEP', prepPlusDoxy:'PrEP + Doxy', prevProfile:'Previous', preventionLabel:'Prevention', privacyLabel:'Privacy', privateLabel:'Private', profileOf:'of', profileSetupNav:'Profile Setup', publicLabel:'Public', recipientExpires:'Recipient\'s copy expires', relStatusLabel:'Relationship Status', relationshipTag:'Relationship', safe:'Safe', safetyPracticesLabel:'Safety Practices', saveEvent:'Save Event', savePrefs:'Save Preferences', saveProfile:'Save Profile', sendAPhoto:'Send a Photo', sendMsgPlaceholder:'Send a message…', shareWithFriends:'Share with Friends', side:'Side', single:'Single', slim:'Slim', stocky:'Stocky', tapToView:'Tap to view', ticketUrlLabel:'Ticket URL', top:'Top', transMan:'Trans man', transWoman:'Trans woman', versatile:'Versatile', weightLabel:'Weight', whoAreYou:'Who are you?', writeToWall:'Write to Stall Wall...', yourMatches:'Your Matches', yourMoment:'Your Moment', small:'Small', large:'Large', browseGuest:'Browse as guest', createProfile:'Create my profile', onboardSub:'Two modes. P2P focused. Local storage facilitates message transmission when offline for up to 48 hours.', cruiseDesc:'Live map of who\'s near you. Grid view included.', matchDesc:'Swipe. Match only when mutual. No algorithm.', average:'Average', mapView:'Map', gridView:'Grid', wallView:'Wall', filtersBtn:'Filters', favourites:'Favourites', close:'Close', favouritesAdded:'Added to favourites', favouritesRemoved:'Removed from favourites'},
+    addMoment:'+ Add', addToGroupTitle:'Add to Group Chat', ageLabel:'Age', ageRangeLabel:'Age Range', albumNameLabel:'Album name', all:'All', applyFilters:'Apply Filters', askMe:'Ask Me', athletic:'Athletic', bareback:'Bareback', bioLabel:'Bio', blockedUsersHeader:'Blocked Users', bodyLabel:'Body Type', bottom:'Bottom', buyTickets:'🎟 Buy Tickets', cameraRoll:'Camera Roll', chatTag:'Chat', createBtn:'Create', cruiseFiltersTitle:'Cruise Filters', datesTag:'Dates', dating:'Dating', datingIntimacy:'Dating & Intimacy', e2eEncrypted:'🔒 E2E encrypted', endowmentLabel:'Endowment', ethnicityLabel:'Ethnicity', eventDateLabel:'Date & Time', eventDescLabel:'Description', eventLocLabel:'Location', eventNameLabel:'Event Name', eventsFilter:'🎟 Events', expires24h:'24 hours', expires7d:'7 days', expiresNever:'Never', extraLarge:'Extra Large', friendsTag:'Friends', fromDevice:'Choose a photo from your device', fwb:'FWB', genderLabel:'Gender', groupsFilter:'👥 Groups', heightLabel:'Height', locationFuzzy:'Location fuzzy · ±300m', lookingForLabel:'Looking for', man:'Man', married:'Married', maxDistanceLabel:'Max Distance:', maxParticipants:'Max 5 participants for P2P relay', momentExpires:'Expires in 24h', moments:'Moments', muscular:'Muscular', mutualOptIn:'Mutual opt-in dating', myTypeFilters:'My Type Filters', nameLabel:'Name', newAlbumBtn:'＋ New Album', newAlbumTitle:'New Album', nextProfile:'Next', noMethod:'None', noMoments:'No moments yet', noStrings:'No Strings', nonbinary:'Non-binary', openRelationship:'Open Relationship', optionsTitle:'Options', orFromAlbums:'or from your albums', p2pReady:'🟢 P2P transfer ready', p2pRelay:'P2P relay', poly:'Poly', positionLabel:'Position', postEvent:'Post Event', postMoment:'Post Moment', preferNotToSay:'Prefer not to say', prep:'PrEP', prepPlusDoxy:'PrEP + Doxy', prevProfile:'Previous', preventionLabel:'Prevention', privacyLabel:'Privacy', privateLabel:'Private', profileOf:'of', profileSetupNav:'Profile Setup', publicLabel:'Public', recipientExpires:'Recipient\'s copy expires', relStatusLabel:'Relationship Status', relationshipTag:'Relationship', safe:'Safe', safetyPracticesLabel:'Safety Practices', saveEvent:'Save Event', savePrefs:'Save Preferences', saveProfile:'Save Profile', sendAPhoto:'Send a Photo', sendMsgPlaceholder:'Send a message…', shareWithFriends:'Share with Friends', side:'Side', single:'Single', slim:'Slim', stocky:'Stocky', tapToView:'Tap to view', ticketUrlLabel:'Ticket URL', top:'Top', transMan:'Trans man', transWoman:'Trans woman', versatile:'Versatile', weightLabel:'Weight', whoAreYou:'Who are you?', writeToWall:'Write to Stall Wall...', yourMatches:'Your Matches', yourMoment:'Your Moment', small:'Small', large:'Large', browseGuest:'Browse as guest', createProfile:'Create my profile', onboardSub:'Two modes. P2P focused. Local storage facilitates message transmission when offline for up to 48 hours.', cruiseDesc:'Live map of who\'s near you. Grid view included.', matchDesc:'Swipe. Match only when mutual. No algorithm.', average:'Average', mapView:'Map', gridView:'Grid', wallView:'Wall', filtersBtn:'Filters', favourites:'Favourites', close:'Close', favouritesAdded:'Added to favourites', favouritesRemoved:'Removed from favourites', createEventTitle:'Create Event', loginTagline:'bunk.gay · P2P · Private', emailPlaceholder:'Email', passwordPlaceholder:'Password', loginBtn:'Log In', signUp:'Sign Up', haveAccount:'Already have an account?', signInLink:'Sign in', forgotPassword:'Forgot your password?', noAccount:'New to Bunk?', loginLegal:'By logging in you agree to our Terms & Privacy Policy. You must be 18 or older to use Bunk.', emailLabel:'Email', passwordLabel:'Password', or:'or', noEventsNearby:'No events found nearby.', waveSent:'Wave sent!', wave:'Wave', connectingPeers:'Connecting to peers...'},
   es: {
     cruise:'Crucero', match:'Match', messages:'Mensajes', events:'Eventos', albums:'Álbumes', profile:'Perfil',
     setup:'Mi Perfil', localEvents:'Eventos Locales', myAlbumes:'Mis Álbumes', stallWall:'Stall Wall',
@@ -2050,7 +2926,7 @@ const STRINGS = {
     onboardSub:'Two modes. P2P focused. Local storage facilitates message transmission when offline for up to 48 hours.',
     cruiseDesc:'Live map of who\'s near you. Grid view included.',
     matchDesc:'Swipe. Match only when mutual. No algorithm.',
-    createProfile:'Create my profile', browseGuest:'Browse as guest', setupTitle:'Set up your profile', small:'Pequeño', large:'Grande', average:'Promedio', mapView:'Mapa', gridView:'Cuadrícula', wallView:'Muro', filtersBtn:'Filtros', favourites:'Favoritos', close:'Cerrar', favouritesAdded:'Añadido a favoritos', favouritesRemoved:'Eliminado de favoritos'},
+    createProfile:'Create my profile', browseGuest:'Browse as guest', setupTitle:'Set up your profile', small:'Pequeño', large:'Grande', average:'Promedio', mapView:'Mapa', gridView:'Cuadrícula', wallView:'Muro', filtersBtn:'Filtros', favourites:'Favoritos', close:'Cerrar', favouritesAdded:'Añadido a favoritos', favouritesRemoved:'Eliminado de favoritos', createEventTitle:'Crear evento', loginTagline:'bunk.gay · P2P · Privado', emailPlaceholder:'Correo electrónico', passwordPlaceholder:'Contraseña', loginBtn:'Iniciar sesión', signUp:'Registrarse', haveAccount:'¿Ya tienes una cuenta?', signInLink:'Iniciar sesión', forgotPassword:'¿Olvidaste tu contraseña?', noAccount:'¿Nuevo en Bunk?', loginLegal:'Al iniciar sesión, aceptas nuestros Términos y Política de privacidad. Debes tener 18 años o más.', emailLabel:'Correo electrónico', passwordLabel:'Contraseña', or:'o', noEventsNearby:'No hay eventos cercanos.', waveSent:'¡Saludo enviado!', wave:'Saludo', connectingPeers:'Conectando con pares...'},
   es: {
     cruise:'Crucero', match:'Match', messages:'Mensajes', events:'Eventos', albums:'Álbumes', profile:'Perfil',
     setup:'Mi Perfil', localEvents:'Eventos Locales', myAlbums:'Mis Álbumes', stallWall:'Stall Wall',
@@ -2106,7 +2982,7 @@ const STRINGS = {
     cruiseDesc:'Mapa ao vivo de quem está por perto. Vista em grade incluída.',
     matchDesc:'Deslize. Match só quando é mútuo. Sem algoritmo.',
     createProfile:'Criar meu perfil', browseGuest:'Navegar como convidado', setupTitle:'Configure seu perfil',
-    small:'Pequeno', large:'Grande', average:'Média', mapView:'Mapa', gridView:'Grade', wallView:'Mural', filtersBtn:'Filtros', favourites:'Favoritos', close:'Fechar', favouritesAdded:'Adicionado aos favoritos', favouritesRemoved:'Removido dos favoritos'},
+    small:'Pequeno', large:'Grande', average:'Média', mapView:'Mapa', gridView:'Grade', wallView:'Mural', filtersBtn:'Filtros', favourites:'Favoritos', close:'Fechar', favouritesAdded:'Adicionado aos favoritos', favouritesRemoved:'Removido dos favoritos', createEventTitle:'Criar evento', loginTagline:'bunk.gay · P2P · Privado', emailPlaceholder:'E-mail', passwordPlaceholder:'Senha', loginBtn:'Entrar', signUp:'Cadastrar', haveAccount:'Já tem uma conta?', signInLink:'Entrar', forgotPassword:'Esqueceu sua senha?', noAccount:'Novo no Bunk?', loginLegal:'Ao entrar, você concorda com nossos Termos e Política de Privacidade. Você deve ter 18 anos ou mais.', emailLabel:'E-mail', passwordLabel:'Senha', or:'ou', noEventsNearby:'Nenhum evento próximo.', waveSent:'Aceno enviado!', wave:'Aceno', connectingPeers:'Conectando aos pares...'},
   fr: {
     cruise:'Cruise', match:'Match', messages:'Messages', events:'Événements', albums:'Albums', profile:'Profil',
     setup:'Mon Profil', localEvents:'Événements Locaux', myAlbums:'Mes Albums', stallWall:'Stall Wall',
@@ -2136,7 +3012,7 @@ const STRINGS = {
     setupTitle:'Configurez votre profil',
     discover:'Découvrir', cruiseMatch:'Cruise / Match', myProfile:'Mon Profil', account:'Compte', connect:'Connecter',
     noMoreProfiles:'Plus de profils à proximité', swipeAgain:'Swiper à nouveau',
-    small:'Petit', large:'Grand', average:'Moyen', mapView:'Carte', gridView:'Grille', wallView:'Mur', filtersBtn:'Filtres', favourites:'Favoris', close:'Fermer', favouritesAdded:'Ajouté aux favoris', favouritesRemoved:'Retiré des favoris'},
+    small:'Petit', large:'Grand', average:'Moyen', mapView:'Carte', gridView:'Grille', wallView:'Mur', filtersBtn:'Filtres', favourites:'Favoris', close:'Fermer', favouritesAdded:'Ajouté aux favoris', favouritesRemoved:'Retiré des favoris', createEventTitle:'Créer un événement', loginTagline:'bunk.gay · P2P · Privé', emailPlaceholder:'E-mail', passwordPlaceholder:'Mot de passe', loginBtn:'Se connecter', signUp:'S\'inscrire', haveAccount:'Vous avez déjà un compte ?', signInLink:'Se connecter', forgotPassword:'Mot de passe oublié ?', noAccount:'Nouveau sur Bunk ?', loginLegal:'En vous connectant, vous acceptez nos Conditions et notre Politique de confidentialité. Vous devez avoir 18 ans ou plus.', emailLabel:'E-mail', passwordLabel:'Mot de passe', or:'ou', noEventsNearby:'Aucun événement à proximité.', waveSent:'Vague envoyée !', wave:'Vague', connectingPeers:'Connexion aux pairs...'},
   de: {
     cruise:'Cruise', match:'Match', messages:'Nachrichten', events:'Veranstaltungen', albums:'Alben', profile:'Profil',
     setup:'Mein Profil', localEvents:'Lokale Events', myAlbums:'Meine Alben', stallWall:'Stall Wall',
@@ -2166,7 +3042,7 @@ const STRINGS = {
     setupTitle:'Profil einrichten',
     discover:'Entdecken', cruiseMatch:'Cruise / Match', myProfile:'Mein Profil', account:'Konto', connect:'Verbinden',
     noMoreProfiles:'Keine weiteren Profile in der Nähe', swipeAgain:'Nochmals swipen',
-    small:'Klein', large:'Groß', average:'Durchschnittlich', mapView:'Karte', gridView:'Raster', wallView:'Wand', filtersBtn:'Filter', favourites:'Favoriten', close:'Schließen', favouritesAdded:'Zu Favoriten hinzugefügt', favouritesRemoved:'Von Favoriten entfernt'}
+    small:'Klein', large:'Groß', average:'Durchschnittlich', mapView:'Karte', gridView:'Raster', wallView:'Wand', filtersBtn:'Filter', favourites:'Favoriten', close:'Schließen', favouritesAdded:'Zu Favoriten hinzugefügt', favouritesRemoved:'Von Favoriten entfernt', createEventTitle:'Event erstellen', loginTagline:'bunk.gay · P2P · Privat', emailPlaceholder:'E-Mail', passwordPlaceholder:'Passwort', loginBtn:'Anmelden', signUp:'Registrieren', haveAccount:'Bereits ein Konto?', signInLink:'Anmelden', forgotPassword:'Passwort vergessen?', noAccount:'Neu bei Bunk?', loginLegal:'Durch die Anmeldung stimmst du unseren Nutzungsbedingungen und Datenschutzrichtlinien zu. Du musst mindestens 18 Jahre alt sein.', emailLabel:'E-Mail', passwordLabel:'Passwort', or:'oder', noEventsNearby:'Keine Events in der Nähe.', waveSent:'Welle gesendet!', wave:'Winken', connectingPeers:'Verbindung zu Peers...'}
 };
 let currentLang = localStorage.getItem('bunk_lang') || 'en';
 function t(key){ return (STRINGS[currentLang]||STRINGS.en)[key] || STRINGS.en[key] || key; }
@@ -2190,12 +3066,18 @@ function setLang(code){
   // Update desktop sidebar lang select to match
   const sel=document.querySelector('.lang-bar select');
   if(sel) sel.value=code;
-  // Update all data-t elements
+  // Update all data-t elements (static HTML)
   document.querySelectorAll('[data-t]').forEach(el=>{
     const key=el.dataset.t;
     if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.placeholder=t(key);
     else el.textContent=t(key);
   });
+  // Re-render dynamic content so JS-generated strings update too
+  if(typeof renderEvents==='function'){ renderEvents('m'); renderEvents('d'); }
+  if(typeof renderCruise==='function'){ renderCruise('cgrid-m'); renderCruise('cgrid-d'); }
+  if(typeof renderWall==='function'){ renderWall('m'); renderWall('d'); }
+  if(typeof renderMomentsStrip==='function'){ renderMomentsStrip(); }
+  if(typeof renderInbox==='function'){ renderInbox('m','all'); renderInbox('d','all'); }
 }
 // Run on load
 document.addEventListener('DOMContentLoaded',()=>setLang(currentLang));
@@ -2335,11 +3217,172 @@ function startSimulation(){
   setInterval(()=>{
     const ct = 210 + Math.floor(Math.random()*30);
     ['pct-m','pct-d'].forEach(id=>{ const el=document.getElementById(id); if(el)el.innerHTML=`<div class="peer-dot"></div><span>${ct} nearby</span>`; });
-    ['map-count-m','map-count-d'].forEach(id=>{ const el=document.getElementById(id); if(el)el.innerHTML=`<span>${ct}</span> peers nearby`; });
+    ['map-count-m','map-count-d'].forEach(id=>{ const el=document.getElementById(id); if(el)el.innerHTML=`<span>${ct}</span> ${t('peersNearby')}`; });
   }, 8000);
 }
+
+
+// ── PROFILE PHOTO UPLOAD ─────────────────────────────────────────
+let profilePhotoDataUrl = null;
+function handleProfilePhoto(event) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    profilePhotoDataUrl = e.target.result;
+    // Mobile elements
+    const img = document.getElementById('profile-photo-img');
+    const placeholder = document.getElementById('profile-photo-placeholder');
+    if(img) { img.src = profilePhotoDataUrl; img.style.display = 'block'; }
+    if(placeholder) placeholder.style.display = 'none';
+    // Also sync desktop if present
+    const imgD = document.getElementById('profile-photo-img-d');
+    const phD  = document.getElementById('profile-photo-placeholder-d');
+    if(imgD) { imgD.src = profilePhotoDataUrl; imgD.style.display = 'block'; }
+    if(phD) phD.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function handleProfilePhotoD(event) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    profilePhotoDataUrl = e.target.result;
+    // Desktop elements
+    const imgD = document.getElementById('profile-photo-img-d');
+    const phD  = document.getElementById('profile-photo-placeholder-d');
+    if(imgD) { imgD.src = profilePhotoDataUrl; imgD.style.display = 'block'; }
+    if(phD) phD.style.display = 'none';
+    // Also sync mobile if present
+    const img = document.getElementById('profile-photo-img');
+    const ph  = document.getElementById('profile-photo-placeholder');
+    if(img) { img.src = profilePhotoDataUrl; img.style.display = 'block'; }
+    if(ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── TYPING INDICATOR ──────────────────────────────────────────────
+function showTypingIndicator(s) {
+  const msgs = document.getElementById('cmsgs-'+s);
+  if(!msgs) return;
+  const existing = msgs.querySelector('.typing-indicator');
+  if(existing) existing.remove();
+  const d = document.createElement('div');
+  d.className = 'msg them typing-indicator';
+  d.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => { d.remove(); }, 2500);
+}
+
+// ── HAVERSINE DISTANCE CALCULATION ────────────────────────────────
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // metres
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  const c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  const d = R*c;
+  if(d < 1000) return Math.round(d)+'m';
+  return (d/1000).toFixed(1)+'km';
+}
+function updateProfileDistances(userLat, userLng) {
+  profiles.forEach(p => {
+    if(p._lat && p._lng) {
+      p.dist = haversine(userLat, userLng, p._lat, p._lng);
+    }
+  });
+}
+
+// ── MOMENT EDITOR ─────────────────────────────────────────────────
+let _selectedMomentEmoji = '🌅';
+function openMomentEditor() {
+  document.getElementById('moment-editor-modal').classList.add('open');
+  document.getElementById('moment-caption').value = '';
+  selectMomentEmojiVal('🌅');
+}
+function closeMomentEditor() {
+  document.getElementById('moment-editor-modal').classList.remove('open');
+}
+function selectMomentEmoji(el) {
+  document.querySelectorAll('#moment-emoji-row span').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  _selectedMomentEmoji = el.textContent;
+  const prev = document.getElementById('moment-preview');
+  if(prev) prev.textContent = _selectedMomentEmoji;
+}
+function selectMomentEmojiVal(val) {
+  const spans = document.querySelectorAll('#moment-emoji-row span');
+  spans.forEach(s => { s.classList.remove('selected'); if(s.textContent===val){ s.classList.add('selected'); } });
+  _selectedMomentEmoji = val;
+  const prev = document.getElementById('moment-preview');
+  if(prev) prev.textContent = val;
+}
+function postMoment() {
+  const caption = document.getElementById('moment-caption').value.trim();
+  const myMoment = momentsData.find(m => m.isMe);
+  if(myMoment) {
+    myMoment.img = _selectedMomentEmoji;
+    myMoment.caption = caption;
+    myMoment.hasActive = true;
+    myMoment.posted = 'just now';
+  }
+  closeMomentEditor();
+  renderMomentsStrip();
+  showBanner('✨', 'Moment posted!', 'Visible to nearby peers for 24h');
+}
+
+// ── SPLASH SCREEN ANIMATION ──────────────────────────────────────
+(function() {
+  const splash = document.getElementById('splash-screen');
+  const logo = document.getElementById('splash-logo');
+  const tag = document.getElementById('splash-tag');
+  if(!splash) return;
+  setTimeout(() => {
+    if(logo) { logo.style.opacity='1'; logo.style.transform='translateY(0)'; }
+    if(tag) tag.style.opacity='1';
+  }, 100);
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => { if(splash.parentNode) splash.parentNode.removeChild(splash); }, 700);
+  }, 1800);
+})();
+
 </script>
 
+<!-- Explore Location Modal -->
+<div class="explore-modal-overlay" id="explore-modal" onclick="closeExploreModal()">
+  <div class="explore-modal-sheet" onclick="event.stopPropagation()">
+    <div style="text-align:center;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px">🌍 Explore</div>
+    <div class="explore-search-wrap">
+      <span style="font-size:14px;color:var(--muted)">🔍</span>
+      <input type="text" id="explore-search-input" placeholder="Search city..." oninput="filterExploreCities(this.value)">
+    </div>
+    <div class="explore-section-lbl">Popular cities</div>
+    <div class="explore-cities" id="explore-cities-list"></div>
+  </div>
+</div>
+
+<!-- Log In Bottom Sheet -->
+<div class="modal-overlay" id="login-sheet" onclick="closeLoginSheet()" style="z-index:10000">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="display:flex;flex-direction:column;gap:14px">
+    <div class="as-handle"></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;text-align:center;background:linear-gradient(135deg,var(--cruise),#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Welcome back</div>
+    <div id="login-sheet-error" class="login-error"></div>
+    <div class="login-input-wrap">
+      <span class="login-input-icon">✉️</span>
+      <input class="login-input" id="login-sheet-email" type="email" placeholder="Email" data-t="emailPlaceholder" autocomplete="email">
+    </div>
+    <div class="login-input-wrap">
+      <span class="login-input-icon">🔑</span>
+      <input class="login-input" id="login-sheet-password" type="password" placeholder="Password" data-t="passwordPlaceholder" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-forgot" onclick="forgotPassword()" data-t="forgotPassword">Forgot your password?</div>
+    <button class="btn-cta" onclick="doLogin()" data-t="loginBtn">Log In</button>
+    <button class="btn-ghost-sm" onclick="closeLoginSheet()" style="margin-top:-4px" data-t="cancel">Cancel</button>
+  </div>
+</div>
 <!-- Favourites Modal -->
 <div class="modal-overlay" id="favorites-modal" onclick="closeFavoritesModal()">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:70vh;display:flex;flex-direction:column">
@@ -2366,6 +3409,21 @@ function startSimulation(){
   </div>
   <div class="story-content" style="font-size:100px;text-align:center;pointer-events:none;user-select:none;margin-top:40px"></div>
   <div style="position:absolute;bottom:40px;left:0;right:0;padding:0 20px;text-align:center;color:rgba(255,255,255,0.5);font-size:12px">Tap left/right to navigate</div>
+</div>
+
+<!-- iOS Add to Home Screen nudge -->
+<div id="a2hs-banner">
+  <div class="a2hs-row">
+    <div class="a2hs-icon">B</div>
+    <div class="a2hs-text">
+      <div class="a2hs-title">Install Bunk for notifications</div>
+      <div class="a2hs-sub">iOS requires home screen install for push notifications</div>
+    </div>
+    <button class="a2hs-close" onclick="dismissA2HS()">✕</button>
+  </div>
+  <div class="a2hs-steps">
+    Tap <strong>Share</strong> <span style="font-size:14px">⎙</span> at the bottom of Safari → <strong>Add to Home Screen</strong> → <strong>Add</strong>
+  </div>
 </div>
 </body>
 </html>
